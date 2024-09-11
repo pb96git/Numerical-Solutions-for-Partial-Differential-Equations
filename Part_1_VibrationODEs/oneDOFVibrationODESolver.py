@@ -197,7 +197,7 @@ def plot_results(results, exact_solution=None, plot_velocity=True, filename='a')
             ax2.set_xlim()#([0, max(t)])
             ax2.set_ylim()#([min(v) * 1.1, max(v) * 1.1])
 
-    # Prevent out-of-bound issues with tight_layout
+   
     try:
         plt.tight_layout()
     except ValueError as e:
