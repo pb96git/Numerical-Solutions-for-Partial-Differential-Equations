@@ -36,17 +36,17 @@ Solves the system: m*u'' + f(u') + s(u) = F(t) using multiple methods.
 # User-defined Exact solution (if available)
 def u_exact(t):
     I = 1.0  # Initial displacement
-    w = 2 * np.pi  # Angular frequency (depends on spring constant and mass)
+    w = 2 * np.pi  # Angular frequency
     return I * np.cos(w * t)
 
 # User-defined Damping function : f(u')
 def damping_function(v):
     return 0.0  # No damping in this idealized case, but can be added if needed
 
-# User-defined restoring force : s(u) (Hooke's Law for a spring)
+# User-defined restoring force : s(u) 
 def restoring_function(u):
     k = 2 * np.pi  # Spring constant
-    return k**2 * u  # Force exerted by the spring (Hooke's Law: F = -kx)
+    return k**2 * u  # Force exerted by the spring
 
 # User-defined External force : F(t)
 def external_force(t):
