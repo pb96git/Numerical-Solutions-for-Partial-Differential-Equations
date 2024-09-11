@@ -265,7 +265,7 @@ def convergence_rates(I, w, dt, T, m, methods):
 
 def test_convergence_rates(I, w, dt, T, m, methods):
     """
-    Test convergence rates for the given methods. Continues testing other methods even if one fails.
+    Test convergence rates for the given methods.
     """
     # Get convergence rates and errors for each method
     rates, E_values, dt_values = convergence_rates(I, w, dt, T, m, methods)
