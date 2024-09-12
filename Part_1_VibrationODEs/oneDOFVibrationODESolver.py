@@ -130,7 +130,7 @@ def general_solver(m, damping_func, restoring_func, external_force, initial_cond
         elif method == 'EC':  # Euler-Cromer Method
            for n in range(Nt):
                 if n == 0:
-                    # Special case for the first time step, similar to what you provided
+                    # Special case for the first time step
                     a_n = (external_force(t[n]) - damping_func(v[n]) - restoring_func(u[n])) / m
                     v[1] = v[0] + 0.5 * dt * a_n
                 else:
