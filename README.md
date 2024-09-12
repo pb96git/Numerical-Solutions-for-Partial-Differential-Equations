@@ -17,7 +17,9 @@ Part_1_VibrationODEs:
     Select one of the example codes (file starting with Ex) and use it as a template to define your system.
     
     Set Custom Functions:
-    Modify the template by defining functions specific to your 1DOF vibration system. Ensure that you implement the appropriate damping, restoring force, and external force functions.
+    Modify the template by defining functions specific to your 1DOF vibration system. 
+    Ensure that you implement the appropriate damping, restoring force, and external force functions.
     
-    This code is primarily intended for educational purposes and to assist in learning numerical methods for solving differential equations in mechanical vibration systems.
+    This code is primarily intended for educational purposes and to assist in learning numerical methods 
+    for solving differential equations in mechanical vibration systems.
 
