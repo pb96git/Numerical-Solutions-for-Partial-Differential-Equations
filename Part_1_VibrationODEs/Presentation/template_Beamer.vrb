@@ -1,0 +1,24 @@
+\frametitle{Euler-Cromer Method}
+\justifying
+	\textbf{3. Displacement Update:}
+	The displacement is updated using the newly computed velocity \( v_{n+1} \):
+	\[
+	u_{n+1} = u_n + dt \cdot v_{n+1}
+	\]
+	This update uses the velocity at the next time step to compute the new displacement, making the method more stable for oscillatory systems.
+	
+	\textbf{Key Equations:}
+	\begin{itemize}
+		\item Acceleration:
+		\[
+		a_n = \frac{F(t_n) - f(v_n) - s(u_n)}{m}
+		\]
+		\item Velocity Update:
+		\[
+		v_{n+1} = v_n + dt \cdot a_n
+		\]
+		\item Displacement Update:
+		\[
+		u_{n+1} = u_n + dt \cdot v_{n+1}
+		\]
+	\end{itemize}
