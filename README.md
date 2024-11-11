@@ -22,5 +22,5 @@ Riemann solvers and numerical methods for fluid dynamics: a practical introducti
     Ensure that you implement the appropriate damping, restoring force, and external force functions.
     
     This code is primarily intended for educational purposes and to assist in learning numerical methods 
-    for solving differential equations in mechanical vibration systems.
+    for solving differential equations in mechanical vibration systems, wave PDE.
 
