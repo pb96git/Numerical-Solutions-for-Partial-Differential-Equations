@@ -6,10 +6,11 @@ Riemann solvers and numerical methods for fluid dynamics: a practical introducti
 
 
     
-Part_1_VibrationODEs:
+
 
     
-    The code is currently in development and serves as a learning tool for solving 1-degree-of-freedom (1DOF) vibration systems.
+    Part 1: The code is currently in development and serves as a learning tool for solving 1-degree-of-freedom (1DOF) vibration systems.
+    Part 2: The code is currently in development and serves as a learning tool for solving 1D wave PDE with option of variable velocity.
     
     How to Use:
     
