@@ -8,9 +8,9 @@ Riemann solvers and numerical methods for fluid dynamics: a practical introducti
     
 
 
-    
-    Part 1: The code is currently in development and serves as a learning tool for solving 1-degree-of-freedom (1DOF) vibration systems.
-    Part 2: The code is currently in development and serves as a learning tool for solving 1D wave PDE with option of variable velocity.
+    The code is currently in development and serves as a learning tool for:
+    Part 1:  Solving 1-degree-of-freedom (1DOF) vibration systems.
+    Part 2:  Solving 1D wave PDE with option of variable velocity.
     
     How to Use:
     
