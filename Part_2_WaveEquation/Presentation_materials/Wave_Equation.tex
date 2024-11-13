@@ -1,0 +1,3240 @@
+\documentclass{article}
+\usepackage{amsmath}           % For mathematical equations
+\usepackage{amssymb}           % For additional math symbols
+\usepackage{geometry}          % For page margins
+\usepackage{listings}          % For code formatting
+\usepackage{xcolor}            % For color in listings
+\usepackage{caption}           % For captions in listings
+\usepackage{titlesec}          % For custom section titles
+\usepackage{hyperref}          % For clickable links in the table of contents
+\usepackage{comment}
+
+% Set depth for the table of contents to show only sections and subsections
+\setcounter{tocdepth}{2}
+
+% Define subsubsubsection as a custom sectioning level under subsubsection
+\titleclass{\subsubsubsection}{straight}[\subsubsection]
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\titleformat{\subsubsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}{0pt}{1.25ex plus 1ex minus .2ex}{1pt}
+
+\hypersetup{bookmarksdepth=2} % Limit the depth for bookmarks as well
+
+% Customizing the code listing environment for Python code
+\lstset{
+	language=Python,                         % Set language to Python
+	basicstyle=\ttfamily\footnotesize,       % Code font and size
+	keywordstyle=\color{blue},               % Keywords in blue
+	commentstyle=\color{gray},               % Comments in gray
+	stringstyle=\color{red},                 % Strings in red
+	breaklines=true,                         % Enable line breaking
+	frame=single,                            % Frame the code
+	columns=flexible,                        % Flexible spacing
+	captionpos=b,                            % Caption at the bottom
+	numbers=left,                            % Line numbers on the left
+	numberstyle=\tiny\color{gray},           % Line number style
+	showspaces=false,                        % Hide spaces
+	showstringspaces=false                   % Hide string spaces
+}
+
+\title{\textbf{Part 2: Wave Equations
+	} \\[0.5em]  % Main title
+	\large \textit{Solving Generalized Wave Equations with the Finite Difference Method} \\[2em]  % Subtitle with extra spacing
+}  
+
+\author{\\[15em]  % Adds vertical space between subtitle and author
+	Petar Bosnic \\[0.5em] % Adjust space as needed
+	\textit{University of South-Eastern Norway} \\[2em]  % Adds more space before the date
+}
+
+\date{\today}
+
+\begin{document}
+	
+	% Title page
+	\maketitle
+	\thispagestyle{empty}  % Optionally, remove page number on the title page
+	
+	\vspace{1cm}
+	
+	\begin{center}
+		\textbf{Note}
+	\end{center}
+	
+	\noindent
+	This document was developed as part of the PhD course \textit{Numerical Solutions to Partial Differential Equations} under the guidance of Professors Svein Linge and Knut Vågsæther at the University of South-Eastern Norway (USN). Course material includes the textbooks:
+	
+	\begin{itemize}
+		\item \textit{Finite Difference Computing with PDEs: A Modern Software Approach} by Hans Petter Langtangen and Svein Linge (DOI: 10.1007/978-3-319-55456-3)
+		\item \textit{Riemann Solvers and Numerical Methods for Fluid Dynamics: A Practical Introduction} by E. F. Toro (ISBN: 978-3-540-25202-3 978-3-540-49834-6)
+	\end{itemize}
+	
+	\vspace{1cm}
+	
+	\newpage  % Start a new page after the title and note
+	
+	% Table of contents page
+	\tableofcontents
+	\newpage  % Start a new page after the table of contents
+
+
+	
+	\section{Introduction}
+	
+		The wave equation is a fundamental partial differential equation (PDE) that describes a broad range of physical phenomena involving waves or vibrations. It is crucial in fields such as acoustics, electromagnetics, seismology, and fluid dynamics, providing a framework to model how waves propagate in different media. The wave equation models the behavior of oscillatory systems, capturing the essence of how disturbances travel through a medium over time and space. 
+		
+		The generalized form of the wave equation in one spatial dimension is expressed as:
+		
+		\begin{equation}
+			\frac{\partial^2 u}{\partial t^2} = c^2 \frac{\partial^2 u}{\partial x^2} + f(x, t),
+		\end{equation}
+		
+		or, in a more compact notation:
+		
+		\begin{equation}
+			u_{tt} = c^2 u_{xx} + f(x,t),
+		\end{equation}
+		
+		where:
+		\begin{itemize}
+			\item $u(x, t)$ represents the displacement of the wave at position $x$ and time $t$.
+			\item $c$ is the wave propagation speed, which depends on the physical properties of the medium (e.g., tension and density for a vibrating string or compressibility and density for sound waves in air).
+			\item $f(x, t)$ is an optional source term that introduces external forces, driving terms, or other energy sources that can affect the wave’s behavior over time and space.
+		\end{itemize}
+		
+		This PDE states that the acceleration of the displacement field, represented by the second derivative with respect to time, $u_{tt}$, is proportional to the spatial curvature of the displacement field, $u_{xx}$. In regions where the curvature is high, the acceleration is also high, causing the wave to propagate by transferring energy through the medium.
+	
+   		\begin{comment}
+		\subsection{Applications of the Generalized Wave Equation}
+		
+		The wave equation is used extensively to model different wave behaviors:
+		\begin{itemize}
+			\item \textbf{Sound Waves}: The equation describes how sound propagates in air or other media, where $c$ corresponds to the speed of sound. In this case, $u(x,t)$ represents variations in air pressure or particle displacement.
+			\item \textbf{Electromagnetic Waves}: In electromagnetics, the wave equation models the propagation of electric and magnetic fields. Here, $c$ would be the speed of light, and $u(x,t)$ would correspond to field intensities.
+			\item \textbf{Water Waves}: The equation can be adapted to describe shallow water waves, where $u(x,t)$ represents the height of the water surface, and $c$ corresponds to the wave propagation speed based on gravitational acceleration and water depth.
+			\item \textbf{Seismic Waves}: In geophysics, the wave equation is used to model seismic waves traveling through the Earth. Here, $c$ is related to the material properties of the Earth's layers, and $f(x,t)$ can represent the energy source from seismic activity.
+		\end{itemize}
+		
+		The wave equation provides a simplified yet powerful model to capture the essential physics of these systems. Modifying terms within the equation, such as the source function $f(x,t)$ or the speed $c$, allows us to simulate various wave behaviors in complex physical domains.
+		
+		\subsection{Numerical Methods for Solving the Wave Equation}
+		
+		For most real-world applications, analytical solutions to the wave equation are not feasible due to complex boundary conditions, heterogeneous materials, or non-linear terms. Thus, numerical methods such as the finite difference method (FDM) are used to approximate the solution.
+		
+		The finite difference method involves discretizing both time and spatial domains to convert the continuous PDE into a system of algebraic equations that can be solved iteratively. In one dimension, the spatial domain $(0, L)$ and time interval $(0, T)$ are divided into small steps of size $\Delta x$ and $\Delta t$, respectively. Values of $u(x,t)$ are computed at each grid point $(x_i, t_n)$ in this discretized domain.
+		\end{comment}
+		
+		\subsection{Finite Difference Approximation of the Wave Equation}
+		
+		The finite difference method transforms the continuous partial differential wave equation into a discrete approximation, allowing it to be solved numerically. To approximate the second derivatives in time and space, we begin by discretizing both the time and spatial domains into small steps. Let $x_i = i \Delta x$ denote discrete spatial points, and $t_n = n \Delta t$ denote discrete time points, where $\Delta x$ is the spatial step size and $\Delta t$ is the time step size.
+		
+			\subsubsection{Approximating the Temporal Derivative with Central Difference Scheme}
+			
+			In the wave equation, the second derivative with respect to time, $u_{tt}$, represents the acceleration of the wave at a point. Using the central difference method, we can approximate $u_{tt}$ at a point $(x_i, t_n)$ by the difference between values at adjacent time steps, as follows:
+			
+			\begin{equation}
+				u_{tt} \approx \frac{u_i^{n+1} - 2u_i^n + u_i^{n-1}}{\Delta t^2},
+			\end{equation}
+			
+			where:
+			\begin{itemize}
+				\item $u_i^{n+1}$ is the displacement at the next time step.
+				\item $u_i^n$ is the displacement at the current time step.
+				\item $u_i^{n-1}$ is the displacement at the previous time step.
+				\item $\Delta t$ is the time step size.
+			\end{itemize}
+			
+			This approximation is derived by applying the Taylor expansion to $u(x_i, t_n \pm \Delta t)$, yielding an accurate estimate of the second derivative in time for small $\Delta t$.
+			
+			\subsubsection{Approximating the Spatial Derivative with Central Difference Scheme}
+			
+			Similarly, the second derivative with respect to space, $u_{xx}$, represents the curvature of the wave at a point, indicating how steeply the wave changes between neighboring spatial points. Using the central difference method, we approximate $u_{xx}$ at $(x_i, t_n)$ by:
+			
+			\begin{equation}
+				u_{xx} \approx \frac{u_{i-1}^n - 2u_i^n + u_{i+1}^n}{\Delta x^2},
+			\end{equation}
+			
+			where:
+			\begin{itemize}
+				\item $u_{i-1}^n$ and $u_{i+1}^n$ are the displacements at the neighboring spatial points to the left and right of $x_i$.
+				\item $u_i^n$ is the displacement at the current spatial point.
+				\item $\Delta x$ is the spatial step size.
+			\end{itemize}
+			
+			This approximation is also derived by applying the Taylor expansion, making it accurate for small values of $\Delta x$.
+			
+			\subsubsection{Substituting into the Wave Equation}
+			
+			Now, we substitute these finite difference approximations into the original wave equation, given by:
+			
+			\begin{equation}
+				u_{tt} = c^2 u_{xx} + f(x, t).
+			\end{equation}
+			
+			For simplicity, let’s consider the case with no source term, $f(x,t) = 0$. Substituting the finite difference approximations for $u_{tt}$ and $u_{xx}$, we get:
+			
+			\begin{equation}
+				\frac{u_i^{n+1} - 2u_i^n + u_i^{n-1}}{\Delta t^2} = c^2 \frac{u_{i-1}^n - 2u_i^n + u_{i+1}^n}{\Delta x^2}.
+			\end{equation}
+			
+			To simplify, we multiply both sides by $\Delta t^2$, yielding:
+			
+			\begin{equation}
+				u_i^{n+1} - 2u_i^n + u_i^{n-1} = \frac{c^2 \Delta t^2}{\Delta x^2} \left( u_{i-1}^n - 2u_i^n + u_{i+1}^n \right).
+			\end{equation}
+			
+			\subsubsection{Introducing the Courant Number}
+			
+			We introduce the Courant number, $C$, which is a dimensionless parameter defined as:
+			
+			\begin{equation}
+				C = \frac{c \Delta t}{\Delta x}.
+			\end{equation}
+			
+			The Courant number, $C$, encapsulates the relationship between the time step size, $\Delta t$, the spatial step size, $\Delta x$, and the wave propagation speed, $c$. This number is significant because it indicates how far information (or a "signal") can travel across the spatial grid in one time step. It acts as a stability condition for the numerical scheme.
+			
+			By substituting $C^2$ into the finite difference expression derived from the wave equation, we obtain the following update rule:
+			
+			\begin{equation}
+				u_i^{n+1} = 2u_i^n - u_i^{n-1} + C^2 \left( u_{i-1}^n - 2u_i^n + u_{i+1}^n \right).
+			\end{equation}
+			
+			This is an explicit finite difference scheme for the wave equation, where $u_i^{n+1}$, the displacement at the next time step, is computed based on values at the current time step, $u_i^n$, the previous time step, $u_i^{n-1}$, and neighboring spatial points $u_{i-1}^n$ and $u_{i+1}^n$.
+			
+			\textbf{Why This Expression?} The form of this update rule arises from the central difference approximations applied to the wave equation's second derivatives in time and space. By utilizing central differences, we ensure that the approximation maintains second-order accuracy in both time and space, meaning the error decreases quadratically as the step sizes decrease. This specific form also ensures that the solution depends only on known values from previous steps, making it computationally efficient and straightforward to implement.
+			
+			\textbf{Explicit Solution and Stability Considerations} An "explicit" method means that the solution at the next time step, $u_i^{n+1}$, can be computed directly using known values at the current and previous time steps. This contrasts with "implicit" methods, where unknowns at the next time step would need to be solved simultaneously, typically involving more computational effort. Explicit methods, like the one derived here, are usually easier to implement but can be conditionally stable.
+			
+			For the explicit finite difference scheme to remain stable, the Courant number $C$ must satisfy a critical condition: 
+			
+			\begin{equation}
+				C \leq 1.
+			\end{equation}
+			
+			This condition is crucial because, if $C$ exceeds this threshold, the numerical solution can become unstable, resulting in growing oscillations and inaccurate results. Physically, this stability criterion ensures that the numerical propagation of information through the grid does not exceed the actual wave propagation speed, thereby preserving the integrity of the solution. Meeting this condition requires choosing $\Delta t$ and $\Delta x$ carefully in relation to the wave speed $c$, which plays a central role in wave dynamics.
+			
+			In summary, the Courant number $C$ is vital in explicit finite difference schemes for the wave equation, governing both the stability and accuracy of the numerical solution.
+			
+
+	
+	
+	\section{Understanding Time and Spatial Stepping in the Solver}
+	
+	The finite difference method used in this solver divides the spatial and temporal domains into discrete steps, represented by a grid of points. Each point on this grid corresponds to a value of $u(x, t)$ at a specific spatial position $x$ and a specific time $t$. The solution advances through each time step, with values at the next time level determined by values at the current and previous time steps.
+	
+		\subsection{2D Grid for Time and Spatial Stepping}
+		
+		To better visualize this process, imagine a 2D grid where the $x$-axis represents spatial points and the $t$-axis represents time steps. The solver calculates values of $u(x, t)$ for each grid point $(x_i, t_n)$ iteratively, meaning each point at a new time step depends on the values from previous steps.
+		
+		\begin{center}
+			\begin{tabular}{|c|c|c|c|c|c|}
+				\hline
+				\textbf{Time Steps ($t$)} & \textbf{$x_0$} & \textbf{$x_1$} & \textbf{$x_2$} & \textbf{$\cdots$} & \textbf{$x_N$} \\
+				\hline
+				$t_0$ & $u_0^0$ & $u_1^0$ & $u_2^0$ & $\cdots$ & $u_N^0$ \\
+				\hline
+				$t_1$ & $u_0^1$ & $u_1^1$ & $u_2^1$ & $\cdots$ & $u_N^1$ \\
+				\hline
+				$t_2$ & $u_0^2$ & $u_1^2$ & $u_2^2$ & $\cdots$ & $u_N^2$ \\
+				\hline
+				$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+				\hline
+				$t_n$ & $u_0^n$ & $u_1^n$ & $u_2^n$ & $\cdots$ & $u_N^n$ \\
+				\hline
+			\end{tabular}
+		\end{center}
+		
+		\begin{comment}
+			
+		\textbf{Explanation}:
+		\begin{itemize}
+			\item \textbf{Each row} represents a distinct time step $t_n$.
+			\item \textbf{Each column} represents a specific spatial location $x_i$.
+			\item The value $u_i^n$ at each grid point represents the displacement of the wave at spatial point $x_i$ and time step $t_n$.
+			\item Using the finite difference scheme, the solver calculates values at each point in the grid based on values from previous steps and adjacent spatial points.
+		\end{itemize}
+		
+		\end{comment}
+		
+		
+		\subsection{Finite Difference Update Rule}
+		
+		To compute the values at the next time step, the solver applies the following finite difference update rule:
+		
+		\begin{equation}
+			u_i^{n+1} = 2u_i^n - u_i^{n-1} + C^2 (u_{i-1}^n - 2u_i^n + u_{i+1}^n),
+		\end{equation}
+		where:
+		\begin{itemize}
+			\item $u_i^{n+1}$ is the value at the next time step for position $x_i$.
+			\item $u_i^n$ is the value at the current time step for position $x_i$.
+			\item $u_i^{n-1}$ is the value from the previous time step for position $x_i$.
+			\item $C^2 = \left( \frac{c \Delta t}{\Delta x} \right)^2$ is the square of the Courant number, controlling stability in the scheme.
+			\item $u_{i-1}^n$ and $u_{i+1}^n$ are values at neighboring spatial points, helping compute the spatial derivative.
+		\end{itemize}
+		
+		
+		\textbf{Explanation of the Update Rule}:
+		\begin{itemize}
+			\item This update rule uses the values from the current and previous time steps, along with neighboring spatial points, to compute $u_i^{n+1}$.
+			\item The Courant number $C$ is essential for the stability of the simulation. If $C$ exceeds a certain threshold, the solution can become unstable, causing errors to accumulate.
+			\item This formula is derived from a central difference approximation of the spatial and temporal derivatives in the wave equation.
+		\end{itemize}
+		
+		\subsection{Visualization of the Stepping Process}
+		
+		To illustrate how this update rule advances the solution in time, consider the following grid representation:
+		
+		\begin{center}
+			\begin{tabular}{|c|c|c|}
+				\hline
+				& $u_i^{n-1}$ & \\
+				\hline
+				$u_{i-1}^n$ & $u_i^n$ & $u_{i+1}^n$ \\
+				\hline
+				& $u_i^{n+1}$ & \\
+				\hline
+			\end{tabular}
+		\end{center}
+		
+		In this visualization:
+		\begin{itemize}
+			\item The solver uses values from two previous time steps ($u_i^n$ and $u_i^{n-1}$) and neighboring spatial points ($u_{i-1}^n$ and $u_{i+1}^n$) to calculate the value at $u_i^{n+1}$.
+			\item This process continues iteratively for each spatial point, advancing the wave through time.
+		\end{itemize}
+		
+		\subsection{Calculating the First Time Step}
+		
+		To begin the finite difference solution process for the wave equation, we need to initialize the values of $u(x, t)$ at $t = 0$ and calculate the values at the first time step, $t = \Delta t$. The initial values and the values at the first time step are essential because the finite difference scheme relies on values from two preceding time steps to advance the solution.
+		
+		\textbf{Initial Condition:} Assume that we have an initial displacement profile, $u(x,0)$, representing the state of the wave across the spatial domain at $t = 0$. We might also have an initial velocity profile, $u_t(x,0)$, which gives the rate of change of $u(x,t)$ at $t = 0$. These initial profiles are given by:
+		
+		\begin{align}
+			u(x,0) &= f(x), \\
+			u_t(x,0) &= g(x),
+		\end{align}
+		
+		where $f(x)$ is the initial displacement function, and $g(x)$ is the initial velocity function.
+		
+		To compute $u_i^1$, the displacement at each spatial point $x_i$ at the first time step $t = \Delta t$, we use the Taylor expansion of $u(x,t)$ around $t=0$. For small $\Delta t$, the displacement can be approximated as:
+		
+		\begin{equation}
+			u_i^1 = u_i^0 + \Delta t \, g(x_i) + \frac{C^2}{2} \left( u_{i-1}^0 - 2u_i^0 + u_{i+1}^0 \right),
+		\end{equation}
+		
+		where:
+		\begin{itemize}
+			\item $u_i^0 = u(x_i, 0)$ is the initial displacement at $x_i$,
+			\item $g(x_i)$ is the initial velocity at $x_i$,
+			\item $C$ is the Courant number, defined as $C = \frac{c \Delta t}{\Delta x}$.
+		\end{itemize}
+		
+		This expression provides the values of $u(x, \Delta t)$ across the spatial domain, setting up the solution to advance with the finite difference scheme. By combining the initial displacement and velocity profiles with the spatial finite difference term, this formula respects both the initial wave configuration and propagation behavior from the start.
+		
+	\newpage	
+	
+	\section{Development of Generalized Solver for 1D Wave Equations in Python}
+	
+		The function \texttt{solve\_wave\_equation} is a Python implementation of a finite difference solver for the 1D wave equation, given by:
+		
+		\begin{equation}
+			u_{tt} = c^2 u_{xx} + f(x, t),
+		\end{equation}
+		
+		\subsection{Function Definition: \texttt{solve\_wave\_equation}}
+		
+		The function \texttt{solve\_wave\_equation} implements a finite difference solver for the 1D wave equation. The function signature is as follows:
+		
+		\begin{lstlisting}[language=Python, caption=Function Definition]
+			def solve_wave_equation(I, V, f, c, L, dt, C, T, user_action=None):
+		\end{lstlisting}
+		
+		This function takes the following parameters:
+		\begin{itemize}
+			\item \texttt{I(x)}: Initial displacement function, representing \( u(x, 0) \).
+			\item \texttt{V(x)}: Initial velocity function, representing \( u_t(x, 0) \).
+			\item \texttt{f(x, t)}: Source term in the wave equation, representing external forces as a function of space and time.
+			\item \texttt{c}: Wave propagation speed.
+			\item \texttt{L}: Length of the spatial domain.
+			\item \texttt{dt}: Time step size.
+			\item \texttt{C}: Courant number, defined as \( C = \frac{c \, \Delta t}{\Delta x} \), which is critical for ensuring the stability of the numerical solution.
+			\item \texttt{T}: Total simulation time.
+			\item \texttt{user\_action}: Optional callback function for custom actions at each time step, such as visualization or data collection.
+		\end{itemize}
+		
+		The function returns the following outputs:
+		\begin{lstlisting}[language=Python, caption=Function Return]
+			return u, x, t, cpu_time
+		\end{lstlisting}
+		\begin{itemize}
+			\item \texttt{u}: Solution array containing the wave displacement values at the final time step.
+			\item \texttt{x} and \texttt{t}: Arrays representing the spatial and temporal grid points, respectively.
+			\item \texttt{cpu\_time}: Total computation time for the simulation, useful for performance evaluation.
+		\end{itemize}
+		
+		\subsection{Discretization of Time and Space}
+		
+		The first step in setting up the finite difference solver is discretizing the time and spatial domains.
+		
+		\begin{lstlisting}[language=Python, caption=Discretization of Time and Space]
+			Nt = int(round(T / dt))  # Number of time steps
+			t = np.linspace(0, Nt * dt, Nt + 1)  # Time mesh points
+			dx = dt * c / float(C)  # Spatial step size based on Courant number
+			Nx = int(round(L / dx))  # Number of spatial points
+			x = np.linspace(0, L, Nx + 1)  # Spatial mesh points
+			C2 = C ** 2  # Courant number squared (for convenience in the scheme)
+		\end{lstlisting}
+		
+		Here:
+		\begin{itemize}
+			\item \texttt{Nt} is the total number of time steps, computed as $\texttt{Nt} = \frac{T}{\Delta t}$.
+			\item \texttt{Nx} is the number of spatial points, calculated using $\texttt{dx} = \frac{c \, \Delta t}{C}$ and $\texttt{Nx} = \frac{L}{\Delta x}$.
+			\item The Courant number squared, \texttt{C2}, is precomputed as $C^2 = \left( \frac{c \Delta t}{\Delta x} \right)^2$ to simplify expressions in the finite difference scheme.
+		\end{itemize}
+		
+		\subsection{Initial Condition at t = 0}
+		
+		The initial displacement profile $u(x, 0) = I(x)$ is applied to initialize the array \texttt{u\_1}, which represents the displacement at the first time level.
+		
+		\begin{lstlisting}[language=Python, caption=Applying Initial Condition at t = 0]
+			for i in range(Nx + 1):
+				u_1[i] = I(x[i])
+		\end{lstlisting}
+		
+		\subsection{Calculating the First Time Step}
+		
+		For the first time step, $t = \Delta t$, a special formula based on the Taylor expansion of $u(x, t)$ around $t = 0$ is used. This initialization accounts for both the initial velocity $u_t(x, 0) = V(x)$ and the effect of the source term $f(x, t)$.
+		
+		The displacement $u(x, \Delta t)$ for each spatial point $x_i$ at the first time step can be computed as:
+		
+		\begin{equation}
+			u_i^1 = u_i^0 + \Delta t \, V(x_i) + 0.5 \, C^2 \, \left( u_{i-1}^0 - 2u_i^0 + u_{i+1}^0 \right) + 0.5 \, \Delta t^2 \, f(x_i, 0),
+		\end{equation}
+		
+		where:
+		\begin{itemize}
+			\item $u_i^0 = u(x_i, 0)$ is the initial displacement at spatial point $x_i$.
+			\item $V(x_i)$ is the initial velocity at $x_i$.
+			\item $C$ is the Courant number, $C = \frac{c \, \Delta t}{\Delta x}$.
+			\item $f(x_i, 0)$ is the source term evaluated at $t = 0$ and spatial point $x_i$.
+		\end{itemize}
+		
+		In the code, this calculation is implemented as follows:
+		
+		\begin{lstlisting}[language=Python, caption=First Time Step Calculation]
+			for i in range(1, Nx):
+				u[i] = u_1[i] + dt * V(x[i]) + \
+				0.5 * C2 * (u_1[i - 1] - 2 * u_1[i] + u_1[i + 1]) + \
+				0.5 * dt ** 2 * f(x[i], t[0])
+		\end{lstlisting}
+		
+		The boundary conditions are then applied at the edges of the spatial domain, setting $u_0 = 0$ and $u_N = 0$:
+		
+		\begin{lstlisting}[language=Python, caption=Boundary Conditions at First Time Step]
+			u[0] = 0  # Boundary condition at the left end
+			u[Nx] = 0  # Boundary condition at the right end
+		\end{lstlisting}
+		
+		These initial calculations set up the values at $t = 0$ and $t = \Delta t$, providing the necessary starting conditions for the finite difference scheme to continue calculating $u(x, t)$ at subsequent time steps.
+		
+		\subsection{Time-Stepping Loop for the Finite Difference Scheme}
+		
+		Once the initial conditions and the first time step are calculated, the solver proceeds with a time-stepping loop to advance the solution through each time level. This loop iterates from $n = 1$ to $n = \texttt{Nt}$, where \texttt{Nt} is the total number of time steps. At each time step, the wave displacement $u(x, t)$ is updated according to the finite difference scheme.
+		
+		\begin{lstlisting}[language=Python, caption=Time-Stepping Loop]
+			# Time-stepping loop for n = 1 to Nt
+			for n in range(1, Nt):
+				# Update all inner points at time t[n+1]
+				for i in range(1, Nx):
+					u[i] = -u_2[i] + 2 * u_1[i] + \
+					C2 * (u_1[i - 1] - 2 * u_1[i] + u_1[i + 1]) + \
+					dt ** 2 * f(x[i], t[n])
+		\end{lstlisting}
+		
+		The update formula applied here is derived from the finite difference approximation of the wave equation. Specifically, the displacement $u_i^{n+1}$ at each interior spatial point $x_i$ is computed as:
+		
+		\begin{equation}
+			u_i^{n+1} = -u_i^{n-1} + 2 u_i^n + C^2 \left( u_{i-1}^n - 2 u_i^n + u_{i+1}^n \right) + \Delta t^2 f(x_i, t_n),
+		\end{equation}
+		
+		where:
+		\begin{itemize}
+			\item $-u_i^{n-1} + 2 u_i^n$ represents the time-stepping component, incorporating values from two previous time steps.
+			\item $C^2 \left( u_{i-1}^n - 2 u_i^n + u_{i+1}^n \right)$ approximates the spatial second derivative.
+			\item $\Delta t^2 f(x_i, t_n)$ accounts for the source term’s influence at position $x_i$ and time $t_n$.
+		\end{itemize}
+		
+		\subsubsection{Applying Boundary Conditions at Each Time Step}
+		
+		Boundary conditions are applied at each time step to maintain the required conditions at the edges of the spatial domain. In this case, we use Dirichlet boundary conditions by setting the displacements at the boundaries to zero:
+		
+		\begin{lstlisting}[language=Python, caption=Applying Boundary Conditions]
+			u[0] = 0  # Boundary condition at the left end
+			u[Nx] = 0  # Boundary condition at the right end
+		\end{lstlisting}
+		
+		This enforces that $u(0, t) = 0$ and $u(L, t) = 0$ for all $t$, which is consistent with fixed endpoints.
+		
+		\subsubsection{User Action for Visualization or Data Processing}
+		
+		The \texttt{user\_action} parameter in \texttt{solve\_wave\_equation} is an optional argument that allows users to pass a custom callback function to be executed at each time step. This capability is useful for purposes such as:
+		\begin{itemize}
+			\item **Visualization**: Plotting the wave's progression in real time or saving snapshots of the solution at each time step.
+			\item **Data Collection**: Storing or processing wave data at specific time steps for later analysis.
+			\item **Monitoring**: Checking certain conditions during the simulation to potentially stop it early if a condition is met (e.g., a maximum amplitude threshold).
+		\end{itemize}
+		
+		The \texttt{user\_action} function, if provided, is called at each time step in the main time-stepping loop of the solver. Below is the code that implements the \texttt{user\_action} callback:
+		
+		\begin{lstlisting}[language=Python, caption=User Action Callback]
+			if user_action is not None:
+				if user_action(u, x, t, n + 1):
+					break
+		\end{lstlisting}
+		
+		\paragraph{ How the User Action Works}
+		
+		1. **Checking if \texttt{user\_action} is Provided**: 
+		The code first checks if the \texttt{user\_action} parameter is not \texttt{None}, meaning the user has provided a callback function to be executed. If \texttt{user\_action} is \texttt{None}, the code skips this section entirely.
+		
+		2. **Calling the User Action Function**:
+		If \texttt{user\_action} is provided, it is called with the following arguments:
+		\begin{itemize}
+			\item \texttt{u}: The current solution array, representing the displacement values at all spatial points at the current time step.
+			\item \texttt{x}: The spatial grid array, which contains the spatial coordinates of each point.
+			\item \texttt{t}: The time grid array, representing all time points in the simulation.
+			\item \texttt{n + 1}: The index of the current time step, which is incremented by 1 to reflect the current time level in the simulation.
+		\end{itemize}
+		
+		This function call gives the user access to the wave’s current state at each time step, allowing them to perform custom operations, such as plotting the solution at each time step or saving data for later analysis.
+		
+		3. **Conditional Early Stopping**:
+		The \texttt{user\_action} function may return a boolean value (e.g., \texttt{True} or \texttt{False}). If the function returns \texttt{True}, the simulation's main time-stepping loop will break early. This capability is useful for cases where the simulation should be stopped based on certain criteria, such as reaching a desired wave amplitude or detecting an anomaly in the solution.
+		
+		\paragraph{Example Usage of \texttt{user\_action}}
+		
+		Here is a simple example of how the \texttt{user\_action} function could be used for visualization:
+		
+		\begin{lstlisting}[language=Python, caption=Example of \texttt{user\_action} for Visualization]
+			import matplotlib.pyplot as plt
+			
+			def visualize(u, x, t, n):
+				plt.plot(x, u, label=f'Time step {n}')
+				plt.xlabel('Position')
+				plt.ylabel('Displacement')
+				plt.title(f'Wave displacement at t = {t[n]:.2f}')
+				plt.legend()
+				plt.show()
+				return False  # Continue simulation
+		\end{lstlisting}
+		
+		In this example, the \texttt{visualize} function plots the wave displacement at each time step. The function does not return \texttt{True}, so the simulation will continue to the next time step without breaking the loop.
+		
+		Alternatively, the \texttt{user\_action} function could be set up to collect data only at specific time intervals, stop the simulation when a certain condition is met, or save snapshots of the wave progression:
+		
+		\begin{lstlisting}[language=Python, caption=Example of Early Stopping with \texttt{user\_action}]
+			def stop_if_high_amplitude(u, x, t, n):
+				max_amplitude = np.max(np.abs(u))
+				if max_amplitude > threshold:
+					print(f'Stopping simulation at time step {n}, max amplitude reached: {max_amplitude}')
+					return True  # Stop the simulation
+				return False  # Continue simulation
+		\end{lstlisting}
+		
+		In this case, the simulation will stop early if the wave amplitude exceeds a given \texttt{threshold}.
+		
+		\paragraph{Summary of \texttt{user\_action} Benefits}
+		
+		The \texttt{user\_action} callback provides significant flexibility in the \texttt{solve\_wave\_equation} function. It enables users to:
+		\begin{itemize}
+			\item Visualize wave evolution in real time.
+			\item Collect or process data during the simulation.
+			\item Implement custom stopping criteria based on simulation progress.
+		\end{itemize}
+		
+		This flexibility makes the solver adaptable to various applications, allowing users to gather insights during the simulation and modify its behavior without altering the core solver code.
+		
+		
+		\paragraph{Variable Switching for the Next Time Step}
+		
+		After updating the solution array for the current time step, the variables are switched to prepare for the next step:
+		
+		\begin{lstlisting}[language=Python, caption=Switching Variables for the Next Time Step]
+			# Switch variables for the next time step
+			u_2[:] = u_1
+			u_1[:] = u
+		\end{lstlisting}
+		
+		Here:
+		\begin{itemize}
+			\item \texttt{u\_2} (representing $u^{n-1}$) is updated to hold the values of \texttt{u\_1} (representing $u^n$).
+			\item \texttt{u\_1} (representing $u^n$) is updated to hold the current values of \texttt{u} (representing $u^{n+1}$).
+		\end{itemize}
+		
+		This process shifts the time levels forward, allowing the scheme to compute the next time step using the latest information.
+		
+		\subsubsection{CPU Time Calculation and Return}
+		
+		At the end of the simulation, the total CPU time taken is calculated and printed, then the function returns the final solution and grid points.
+		
+		\begin{lstlisting}[language=Python, caption=CPU Time Calculation and Return]
+			cpu_time = time.time() - t0  # Calculate CPU time
+			print(cpu_time)
+			
+			return u, x, t, cpu_time
+		\end{lstlisting}
+		
+		\textbf{Output:}
+		\begin{itemize}
+			\item \texttt{u}: Solution array containing the wave displacement values at the final time step.
+			\item \texttt{x} and \texttt{t}: Spatial and time grid points used in the simulation.
+			\item \texttt{cpu\_time}: Total CPU time required to complete the computation.
+		\end{itemize}
+		
+		This complete time-stepping loop iteratively applies the finite difference scheme for each time step, calculates values at all spatial points, and updates the boundary conditions, resulting in a stable and accurate numerical solution to the wave equation.
+	
+	
+	    \subsection{Vectorization}
+	    
+		    In numerical computing, vectorization is a technique used to improve performance by replacing explicit loops with array operations that leverage optimized, low-level implementations. The goal of vectorization is to speed up computation by taking advantage of the highly efficient, parallel processing capabilities of modern CPUs and specialized libraries (such as \texttt{NumPy} in Python).
+		    
+		    In the context of the \texttt{solve\_wave\_equation} function, we provide three versions of the solver:
+		    \begin{itemize}
+		    	\item \textbf{Scalar (Loop-Based) Version:} Each element in the solution array is updated individually in a loop, allowing for straightforward and readable code but without the computational efficiency of vectorized operations.
+		    	\item \textbf{Vectorized Version:} Array slicing is used to update the solution array in bulk. This removes the need for explicit loops, significantly improving the speed of computations for larger arrays.
+		    	\item \textbf{Alternative Vectorized Version (Vectorized2):} A variation of the vectorized approach, this implementation uses a different array slicing method but achieves similar results.
+		    \end{itemize}
+		    
+		    \subsubsection{Function Modifications to Support Multiple Versions}
+		    
+		    To allow the user to select the solver version, we introduce a \texttt{version} parameter in the function’s input, which specifies whether the \texttt{'scalar'}, \texttt{'vectorized'}, or \texttt{'vectorized2'} implementation should be used. The updated function signature is as follows:
+		    
+		    \begin{lstlisting}[language=Python, caption=Function Signature with Solver Version Parameter]
+		    	def solve_wave_equation(I, V, f, c, L, dt, C, T, user_action=None, version='scalar', save_dir=None):
+		    \end{lstlisting}
+		    
+		    The \texttt{version} parameter is passed as a string and defaults to \texttt{'scalar'}. Based on the value of \texttt{version}, the function executes the corresponding time-stepping loop.
+		    
+		    \subsubsection{Time-Stepping Loop: Scalar vs. Vectorized Implementations}
+		    
+		    The time-stepping loop in \texttt{solve\_wave\_equation} is responsible for advancing the solution at each time step, updating the wave displacement array \texttt{u} based on values from previous time levels. We differentiate between scalar and vectorized implementations as follows:
+		    
+		    \paragraph{1. Scalar (Loop-Based) Implementation}
+		    
+		    The scalar version uses a loop to update each element in \texttt{u} individually. This approach is straightforward and maintains clarity, with each element $u[i]$ computed as:
+		    
+		    \begin{equation}
+		    	u_i^{n+1} = -u_i^{n-1} + 2 u_i^n + C^2 \left( u_{i-1}^n - 2 u_i^n + u_{i+1}^n \right) + \Delta t^2 f(x_i, t_n),
+		    \end{equation}
+		    
+		    where:
+		    \begin{itemize}
+		    	\item $-u_i^{n-1} + 2 u_i^n$ represents the time-stepping update using values from the two previous time levels.
+		    	\item $C^2 \left( u_{i-1}^n - 2 u_i^n + u_{i+1}^n \right)$ is the spatial second derivative in finite difference form.
+		    	\item $\Delta t^2 f(x_i, t_n)$ accounts for the source term at position $x_i$ and time $t_n$.
+		    \end{itemize}
+		    
+		    The scalar version in code is implemented as follows:
+		    
+		    \begin{lstlisting}[language=Python, caption=Scalar Loop Implementation]
+		    	# Time-stepping loop
+		    	if version == 'scalar':
+		    		for i in range(1, Nx):
+		    			u[i] = -u_2[i] + 2 * u_1[i] + \
+						     C2 * (u_1[i - 1] - 2 * u_1[i] + u_1[i + 1]) + \
+						     dt ** 2 * f(x[i], t[n])
+		    \end{lstlisting}
+		    
+		    \paragraph{2. Vectorized Implementation}
+		    
+		    The vectorized version uses array slicing to update multiple elements simultaneously, improving computational efficiency by avoiding explicit loops. This approach calculates the solution array \texttt{u} in a single line for all interior points using \texttt{NumPy} operations. In the vectorized implementation, the update for $u[1:-1]$ (representing all interior points) is:
+		    
+		    \begin{equation}
+		    	u[1:-1] = -u_2[1:-1] + 2 u_1[1:-1] + C^2 (u_1[0:-2] - 2 u_1[1:-1] + u_1[2:]) + \Delta t^2 f(x[1:-1], t_n),
+		    \end{equation}
+		    
+		    where:
+		    \begin{itemize}
+		    	\item $u_1[0:-2]$ corresponds to $u_{i-1}^n$, $u_1[1:-1]$ to $u_i^n$, and $u_1[2:]$ to $u_{i+1}^n$.
+		    	\item \texttt{f(x, t[n])} is precomputed as an array \texttt{f\_a} for all spatial points, enabling simultaneous computation across the array.
+		    \end{itemize}
+		    
+		    The vectorized version in code is as follows:
+		    
+		    \begin{lstlisting}[language=Python, caption=Vectorized Implementation]
+		    	elif version == 'vectorized':
+			    	f_a = f(x, t[n])  # Precompute source term as an array
+			    	u[1:-1] = -u_2[1:-1] + 2 * u_1[1:-1] + \
+						    C2 * (u_1[0:-2] - 2 * u_1[1:-1] + u_1[2:]) + \
+						    dt ** 2 * f_a[1:-1]
+		    \end{lstlisting}
+		    
+		    \paragraph{3. Alternative Vectorized Implementation (Vectorized2)}
+		    
+		    An alternative vectorized approach, \texttt{vectorized2}, uses a slightly different slicing syntax but achieves the same results. Instead of \texttt{u[1:-1]}, it uses \texttt{u[1:Nx]}, providing another way to handle the array indices. The formula remains the same, only the slicing syntax differs:
+		    
+		    \begin{lstlisting}[language=Python, caption=Alternative Vectorized Implementation]
+		    	elif version == 'vectorized2':
+			    	f_a = f(x, t[n])  # Precompute source term as an array
+			    	u[1:Nx] = -u_2[1:Nx] + 2 * u_1[1:Nx] + \
+						    C2 * (u_1[0:Nx - 1] - 2 * u_1[1:Nx] + u_1[2:Nx + 1]) + \
+						    dt ** 2 * f_a[1:Nx]
+		    \end{lstlisting}
+		    
+		    \subsubsection{Boundary Conditions and Function Execution}
+		    
+		    In each version, boundary conditions are applied at each time step by setting $u[0] = 0$ and $u[\texttt{Nx}] = 0$, which ensures that the boundaries remain fixed.
+		    
+		    After updating \texttt{u} for the current time step, we swap arrays so that \texttt{u\_2} represents the previous time level, \texttt{u\_1} represents the current level, and \texttt{u} is ready for the next iteration.
+		    
+		    \begin{lstlisting}[language=Python, caption=Boundary Conditions and Swapping Arrays]
+		    	u[0] = 0
+		    	u[Nx] = 0
+		    	
+		    	u_2[:] = u_1
+		    	u_1[:] = u
+		    \end{lstlisting}
+		    
+		    \subsubsection{Benefits of Vectorization}
+		    
+		    Vectorization offers significant performance benefits, especially for large grids, by eliminating explicit loops and leveraging \texttt{NumPy}’s efficient array operations. For high-resolution simulations with many spatial points, vectorized versions can achieve substantial speed-ups over the scalar implementation, making them preferable for performance-critical applications.
+	    
+		
+		\subsection{Boundary Conditions}
+		
+		Boundary conditions are essential in solving the wave equation numerically, as they define how the wave behaves at the edges of the spatial domain, \( x = 0 \) and \( x = L \). This code includes a flexible approach to boundary conditions, allowing the user to choose between Dirichlet, Neumann, and custom boundary conditions for each boundary. These conditions are specified via the \texttt{boundary} parameter in the \texttt{solve\_wave\_equation} function.
+		
+		\subsubsection{Function Modifications to Support Different Boundary Conditions}
+		
+		The \texttt{boundary} parameter is introduced in the function’s input, allowing the user to select the type of boundary condition to apply:
+		\begin{lstlisting}[language=Python, caption=Function Signature with Boundary Condition Parameter]
+			def solve_wave_equation(I, V, f, c, L, dt, C, T, user_action=None, version='scalar', save_dir=None, boundary='Dirichlet'):
+		\end{lstlisting}
+		
+		This parameter can take the following values:
+		\begin{itemize}
+			\item \texttt{'Dirichlet'}: Implements fixed boundary conditions.
+			\item \texttt{'Neumann'}: Implements zero-gradient (free) boundary conditions.
+			\item \texttt{'leftFree'}: Fixes the right boundary while applying a zero-gradient condition at the left.
+			\item \texttt{'rightFree'}: Fixes the left boundary while applying a zero-gradient condition at the right.
+		\end{itemize}
+		
+		Based on the chosen boundary type, the code applies the corresponding boundary conditions at the initial time step and updates them in each iteration of the time-stepping loop.
+		
+		\subsubsection{Implemented Boundary Conditions}
+		
+		\paragraph{ 1. Dirichlet Boundary Condition (Fixed Ends)}
+		
+		The Dirichlet boundary condition sets the displacement \( u(x, t) \) to zero at both ends of the domain, which models a wave on a string with fixed endpoints. Mathematically, this condition is expressed as:
+		\[
+		u(0, t) = 0 \quad \text{and} \quad u(L, t) = 0.
+		\]
+		
+		In the code, this is implemented as follows:
+		\begin{lstlisting}[language=Python, caption=Dirichlet Boundary Condition]
+			if boundary == 'Dirichlet':
+				u[0] = 0
+				u[Nx] = 0
+		\end{lstlisting}
+		
+		This condition is enforced at both the initial time step and every subsequent time step, ensuring that the wave remains fixed at the boundaries throughout the simulation.
+		
+		\paragraph{2. Neumann Boundary Condition (Zero-Gradient/Free Ends)}
+		
+		The Neumann boundary condition sets the gradient of \( u(x, t) \) to zero at the boundaries, allowing the wave to be "free" at the endpoints. This is typically used to model waves in an open domain. Mathematically, this condition is:
+		\[
+		\frac{\partial u}{\partial x}\Big|_{x=0} = 0 \quad \text{and} \quad \frac{\partial u}{\partial x}\Big|_{x=L} = 0.
+		\]
+		
+		In the discrete form, a zero-gradient condition at the boundaries is achieved by setting the values at the boundary points equal to their neighboring points:
+		\begin{lstlisting}[language=Python, caption=Neumann Boundary Condition]
+			elif boundary == 'Neumann':
+				u[0] = u[1]        # Zero-gradient at left boundary
+				u[Nx] = u[Nx - 1]  # Zero-gradient at right boundary
+		\end{lstlisting}
+		
+		This approach effectively "mirrors" the boundary points, simulating a zero gradient at each end of the domain.
+		
+		\paragraph{ 3. Mixed Boundary Condition (leftFree and rightFree)}
+		
+		In addition to standard Dirichlet and Neumann conditions, the code also allows for mixed boundary conditions where one end is free (zero-gradient) while the other is fixed. These are useful for cases where one side of the domain represents a free edge while the other side is anchored.
+		
+		\begin{itemize}
+			\item \textbf{leftFree}: Applies a zero-gradient condition on the left boundary and a fixed condition on the right boundary.
+		    \begin{equation}
+			\frac{\partial u}{\partial x}\Big|_{x=0} = 0, \quad u(L, t) = 0.
+		\end{equation}
+		
+		In the code, the \texttt{leftFree} condition is implemented by setting the left boundary equal to its neighboring point (zero-gradient), while fixing the right boundary to zero:
+		
+		\begin{lstlisting}[language=Python, caption=Left-Free Boundary Condition]
+			elif boundary == 'leftFree':
+				u[0] = u[1]        # Zero-gradient at left boundary
+				u[Nx] = 0          # Fixed at right boundary
+		\end{lstlisting}
+		
+		\item \textbf{rightFree}: Applies a fixed condition on the left boundary and a zero-gradient condition on the right boundary:
+		\begin{equation}
+			u(0, t) = 0, \quad \frac{\partial u}{\partial x}\Big|_{x=L} = 0.
+		\end{equation}
+		
+		This boundary condition is implemented by fixing the left boundary to zero while setting the right boundary to equal its neighboring point, simulating a zero-gradient condition on the right edge:
+		
+		\begin{lstlisting}[language=Python, caption=Right-Free Boundary Condition]
+			elif boundary == 'rightFree':
+				u[0] = 0           # Fixed at left boundary
+				u[Nx] = u[Nx - 1]  # Zero-gradient at right boundary
+		\end{lstlisting}
+		\end{itemize}
+		
+		
+		\subsubsection{Applying Boundary Conditions During the Time-Stepping Loop}
+		
+		Each boundary condition is enforced at every time step to maintain the desired constraints throughout the simulation. The code applies the selected boundary conditions as follows:
+		
+		\begin{lstlisting}[language=Python, caption=Applying Boundary Conditions at Each Time Step]
+		# Apply boundary conditions at each time step
+		if boundary == 'Dirichlet':
+			u[0] = 0
+			u[Nx] = 0
+		elif boundary == 'Neumann':
+			u[0] = u[1]        # Zero-gradient at left boundary
+			u[Nx] = u[Nx - 1]  # Zero-gradient at right boundary
+		elif boundary == 'leftFree':
+			u[0] = u[1]        # Zero-gradient at left boundary
+			u[Nx] = 0          # Fixed at right boundary
+		elif boundary == 'rightFree':
+			u[0] = 0           # Fixed at left boundary
+			u[Nx] = u[Nx - 1]  # Zero-gradient at right boundary
+		\end{lstlisting}
+		
+		\subsubsection{Summary of Boundary Conditions} 
+		
+		\begin{itemize}
+		\item **Dirichlet**: Fixes both boundaries, ensuring that the displacement is zero at \( x = 0 \) and \( x = L \).
+		\item **Neumann**: Enforces zero-gradient conditions on both boundaries, allowing for "free" boundaries.
+		\item **leftFree**: Allows a free boundary on the left and a fixed boundary on the right.
+		\item **rightFree**: Fixes the left boundary while allowing a free boundary on the right.
+		\end{itemize}
+		
+		\begin{comment}
+		\subsubsection{Importance of Boundary Conditions in Wave Propagation} 
+		
+		The choice of boundary condition influences how waves interact with the boundaries of the domain:
+		\begin{itemize}
+		\item **Fixed (Dirichlet) boundaries** reflect waves with inversion, resulting in interference patterns within the domain.
+		\item **Free (Neumann) boundaries** reflect waves without inversion, creating a different interference pattern.
+		\item **Mixed boundaries** allow for a combination of behaviors, useful in modeling scenarios where one side is free (e.g., an open end) and the other is fixed.
+		\end{itemize}
+		
+		The flexibility to choose boundary conditions in the \texttt{solve\_wave\_equation} function enables users to simulate various physical setups and study the impact of boundary behaviors on wave propagation.
+		\end{comment}
+				
+
+		\newpage	
+	\section{Development of Visualization Code for Post-Processing Purposes}
+	
+		Visualization is a crucial aspect of understanding and validating wave simulations, as it allows researchers and engineers to analyze wave propagation, reflections, and boundary interactions more intuitively. Effective visualization also aids in validating the accuracy of the numerical methods used, helping identify issues like numerical dispersion, boundary reflections, and stability problems.
+		
+		The following visualization functions are designed to facilitate post-processing in the \texttt{solve\_wave\_equation} solver, enabling users to create both static and dynamic representations of the wave evolution over time. By capturing and analyzing visual outputs, users can assess how well the simulation aligns with theoretical expectations, providing valuable insights into the reliability of the solver under different conditions.
+		
+		In this section, we introduce three key functions for visualization:
+		\begin{itemize}
+			\item \texttt{save\_wave\_image}: A function that saves static images of the wave at specified time steps. These images allow users to analyze the wave at individual points in time or assemble them into an animation.
+			\item \texttt{generate\_gif\_from\_images}: A function that compiles saved images into an animated GIF, providing a continuous view of the wave’s progression across the spatial domain.
+			\item \texttt{generate\_html\_animation}: A function that generates an interactive HTML animation of the wave, allowing users to view and manipulate the wave’s progression in a browser.
+		\end{itemize}
+		
+		These functions collectively enable users to capture, animate, and interact with the results of the wave simulation, enhancing interpretability of the data and supporting in-depth post-processing analyses to validate the accuracy and stability of the numerical solution.
+		
+		\subsection{Function \texttt{save\_wave\_image}}
+		
+			The \texttt{save\_wave\_image} function is designed to save a static image of the wave profile at a specified time step during the simulation. This function enables users to capture snapshots of the wave's behavior over time, which can be useful for visual inspection, validation, and for assembling into an animation.
+			
+			\paragraph{Function Signature}
+			:
+			\begin{lstlisting}[language=Python, caption=Function Definition]
+				def save_wave_image(u, x, t, n, C, save_dir='wave_images', ymin=None, ymax=None):
+			\end{lstlisting}
+			
+			\paragraph{Parameters:}
+			\begin{itemize}
+				\item \texttt{u}: The solution array representing the wave displacement values at each spatial point at the current time step.
+				\item \texttt{x}: The array of spatial points, providing the $x$-coordinates for plotting.
+				\item \texttt{t}: The array of time points in the simulation, used to label the time at the current step.
+				\item \texttt{n}: The index of the current time step, allowing access to both the current displacement values and time.
+				\item \texttt{C}: The Courant number, which is displayed in the title to provide information on the stability condition of the simulation.
+				\item \texttt{save\_dir}: The directory path where images will be saved. Default is \texttt{'wave\_images'}.
+				\item \texttt{ymin, ymax}: Optional parameters specifying the limits for the $y$-axis. If these are not provided, the limits will be set dynamically based on the data.
+			\end{itemize}
+			
+			\paragraph{Code Explanation}
+			
+			The function proceeds through the following steps:
+			
+			\paragraph{1. Directory Creation}
+			:
+			\begin{lstlisting}[language=Python]
+				if not os.path.exists(save_dir):
+					os.makedirs(save_dir)
+			\end{lstlisting}
+			This section checks if the specified directory for saving images, \texttt{save\_dir}, exists. If it does not, the function creates it using \texttt{os.makedirs(save\_dir)}. This ensures that images are stored in an organized manner without requiring the user to create the directory manually.
+			
+			\paragraph{2. Setting Up the Plot}
+			:
+			\begin{lstlisting}[language=Python]
+				plt.figure(figsize=(8, 4))
+				plt.plot(x, u, label=f"t = {t[n]:.5f}")
+			\end{lstlisting}
+			Here, a new figure is created with a fixed size of \(8 \times 4\) inches to maintain consistency across images. The function then plots the wave profile, using \texttt{x} as the horizontal axis (spatial points) and \texttt{u} as the vertical axis (wave displacement). The label \texttt{t = t[n]:.5f} displays the current time with five decimal precision, which is useful for identifying the time step when analyzing the images.
+			
+			
+			\paragraph{3. Setting the Y-Axis Limits}
+			:
+			\begin{lstlisting}[language=Python]
+				if ymin is not None and ymax is not None:
+					plt.ylim(ymin, ymax)
+				else:
+					plt.ylim(min(u), max(u))  # Dynamic ylim if no limits are provided
+			\end{lstlisting}
+			The $y$-axis limits can either be set by the user or dynamically adjusted based on the wave displacement values. If \texttt{ymin} and \texttt{ymax} are provided, they set fixed limits, making it easier to compare images. If they are not provided, the limits are set dynamically to fit the range of \texttt{u} at the current time step. This dynamic setting can be helpful when the wave amplitude varies significantly over time.
+			
+			\paragraph{4. Setting the X-Axis Limits}
+			:
+			\begin{lstlisting}[language=Python]
+				plt.xlim(0, max(x))
+				plt.xlabel('x')
+				plt.ylabel('u(x,t)')
+			\end{lstlisting}
+			The x-axis limits are set from \(0\) to the maximum value of \texttt{x}, covering the entire spatial domain. The x-axis is labeled \texttt{x}, representing the spatial variable, and the y-axis is labeled \texttt{u(x,t)}, representing wave displacement.
+			
+			\paragraph{5. Adding the Title with Courant Number}
+			:
+			\begin{lstlisting}[language=Python]
+				plt.title(f"Wave propagation at time t = {t[n]:.5f}, Courant number = {C}")
+			\end{lstlisting}
+			The plot title displays both the current time \texttt{t[n]} and the Courant number \texttt{C}. Showing the Courant number in the title provides information on the stability condition and numerical parameters, which is useful for documentation and analysis.
+			
+			\paragraph{6. Enabling Grid and Adding Legend}
+			:
+			\begin{lstlisting}[language=Python]
+				plt.legend()
+				plt.grid(True)
+			\end{lstlisting}
+			A grid is added to the plot for visual clarity, and a legend is enabled to label the time step, helping users distinguish between different time steps if multiple plots are displayed or overlaid.
+			
+			\paragraph{7. Defining the Filename}
+			:
+			\begin{lstlisting}[language=Python]
+				filename = os.path.join(save_dir, f'wave_step_{n:04d}.png')
+			\end{lstlisting}
+			The \texttt{filename} is defined to save the image in \texttt{save\_dir}. The naming convention \texttt{wave\_step\_\{n:04d\}.png} ensures that files are sorted in chronological order, with zero-padded indices (e.g., \texttt{wave\_step\_0001.png}) for consistent file naming.
+			
+			
+			\paragraph{8. Debug Message for Confirmation}
+			:
+			\begin{lstlisting}[language=Python]
+				print(f"Saving image: {filename}")
+			\end{lstlisting}
+			A print statement provides a debug message showing the filename of the saved image. This message is useful for tracking progress in long simulations or debugging if files are not saved correctly.
+			
+			\paragraph{9. Saving and Closing the Plot}
+			:
+			\begin{lstlisting}[language=Python]
+				plt.savefig(filename)
+				plt.close()
+			\end{lstlisting}
+			The plot is saved to the specified filename in \texttt{save\_dir}, and \texttt{plt.close()} ensures that the plot is cleared from memory. Closing the plot is especially important in long simulations to prevent excessive memory usage from open figures.
+			
+			\paragraph{Summary}
+			
+			The \texttt{save\_wave\_image} function provides a systematic way to capture snapshots of the wave profile at each time step, saving them as PNG images in a specified directory. These images are useful for post-processing, enabling visual inspection of the wave's evolution or for assembling into animations to observe wave propagation across time.
+		
+		\subsection{Function \texttt{generate\_gif\_from\_images}}
+	
+			The \texttt{generate\_gif\_from\_images} function compiles a sequence of saved wave images into an animated GIF. This enables users to view the wave’s progression continuously across time steps, providing an intuitive representation of wave propagation dynamics in a single, easily shareable file.
+			
+			\paragraph{Function Signature}
+			:
+			
+			\begin{lstlisting}[language=Python, caption=Function Definition]
+				def generate_gif_from_images(image_folder='wave_images', gif_name='wave_animation.gif', duration=0.1):
+			\end{lstlisting}
+			
+			**Parameters**:
+			\begin{itemize}
+				\item \texttt{image\_folder}: The directory containing the saved wave images (default is \texttt{'wave\_images'}). Each image should correspond to a specific time step in the wave simulation.
+				\item \texttt{gif\_name}: The name of the output GIF file (default is \texttt{'wave\_animation.gif'}).
+				\item \texttt{duration}: The display duration of each frame in the GIF, in seconds (default is 0.1 seconds). This value controls the animation speed.
+			\end{itemize}
+			
+			\paragraph{Code Explanation}
+			
+			The function consists of the following main steps:
+			
+			\paragraph{1. Initializing the List of Images}
+			:
+			\begin{lstlisting}[language=Python]
+				images = []
+			\end{lstlisting}
+			The function begins by creating an empty list, \texttt{images}, which will hold the image data for each frame to be included in the GIF.
+			
+			\paragraph{2. Retrieving and Sorting Image Files}
+			:
+			\begin{lstlisting}[language=Python]
+				image_files = sorted([img for img in os.listdir(image_folder) if img.endswith(".png")])
+			\end{lstlisting}
+			The function retrieves a list of all files in \texttt{image\_folder} that have the \texttt{.png} extension, which corresponds to the saved wave images. It sorts the filenames in chronological order to maintain the correct sequence in the animation. Sorting by filename ensures that frames are displayed in the correct order, assuming filenames follow a numerical or chronological naming convention.
+			
+			\paragraph{3. Handling the Case of No Images Found}
+			:
+			\begin{lstlisting}[language=Python]
+				if not image_files:
+					print("Warning: No images found in the specified folder to create a GIF. Ensure that images are saved correctly during the wave equation simulation.")
+				return
+			\end{lstlisting}
+			If \texttt{image\_files} is empty, indicating no images were found in the specified folder, the function prints a warning message and exits without creating a GIF. This check prevents errors if the function is called before images are generated, providing a clear message for troubleshooting.
+			
+			\paragraph{4. Reading and Appending Images}
+			:
+			\begin{lstlisting}[language=Python]
+				for filename in image_files:
+					image_path = os.path.join(image_folder, filename)
+					images.append(imageio.imread(image_path))
+			\end{lstlisting}
+			The function iterates over each filename in \texttt{image\_files}, reads the image file using \texttt{imageio.imread}, and appends the image data to the \texttt{images} list. This approach ensures that all images are stored in memory as frames, ready for GIF creation.
+			
+			\paragraph{5. Defining the Output GIF Path}
+			:
+			\begin{lstlisting}[language=Python]
+				gif_path = os.path.join(image_folder, gif_name)
+			\end{lstlisting}
+			The output path for the GIF is set by combining the \texttt{image\_folder} and \texttt{gif\_name}. This keeps the GIF within the same folder as the images, making it easy to locate.
+			
+			\paragraph{6. Saving the GIF}
+			:
+			\begin{lstlisting}[language=Python]
+				imageio.mimsave(gif_path, images, duration=duration)
+			\end{lstlisting}
+			The \texttt{imageio.mimsave} function is used to create the GIF. It takes the list of images and the specified \texttt{duration} as input, saving the GIF file at the path specified by \texttt{gif\_path}. The \texttt{duration} parameter controls the time each frame is displayed, allowing users to adjust the playback speed of the GIF to their preference.
+			
+			\paragraph{7. Confirmation Message}
+			:
+			\begin{lstlisting}[language=Python]
+				print(f"GIF saved as {gif_path}")
+			\end{lstlisting}
+			A confirmation message is printed to the console, showing the path where the GIF was saved. This message confirms successful completion and provides the user with the location of the output file.
+			
+			\paragraph{Summary}
+			:
+			
+			The \texttt{generate\_gif\_from\_images} function automates the creation of a GIF from individual frames of wave simulation results, allowing users to observe wave propagation over time in a single file. This functionality is especially useful for presentations and analysis, as it encapsulates the temporal evolution of the wave in a convenient, visual format.
+		
+		\subsection{Function \texttt{generate\_html\_animation}}
+		
+			The \texttt{generate\_html\_animation} function creates an HTML-based animation that visually represents the wave’s evolution over time. This type of interactive output is highly useful for dynamic visualization, allowing users to view the entire wave progression within a web browser.
+			
+			\paragraph{Function Signature}
+			:
+			\begin{lstlisting}[language=Python, caption=Function Definition]
+				def generate_html_animation(x, results, save_dir, filename="movie.html", ymin=-0.005, ymax=0.005, fps=10):
+			\end{lstlisting}
+			
+			**Parameters**:
+			\begin{itemize}
+				\item \texttt{x}: The array of spatial grid points, providing the $x$-coordinates for plotting.
+				\item \texttt{results}: A list of tuples \texttt{(u, t)}, where each tuple contains the wave displacement array \texttt{u} and the time \texttt{t} at each time step. This list holds the full time-series data for the animation.
+				\item \texttt{save\_dir}: The directory where the HTML animation file will be saved.
+				\item \texttt{filename}: The name of the output HTML file (default is \texttt{"movie.html"}).
+				\item \texttt{ymin, ymax}: Optional parameters specifying the limits for the $y$-axis of the animation plot, controlling the vertical bounds for visual consistency.
+				\item \texttt{fps}: Frames per second for the animation (default is 10), controlling the playback speed.
+			\end{itemize}
+			
+			\paragraph{Code Explanation}
+			
+			The function can be broken down into the following primary steps:
+			
+			\paragraph{1. Setting Up the Plot}
+			:
+			\begin{lstlisting}[language=Python]
+				fig, ax = plt.subplots()
+				ax.set_xlim(0, x[-1])  # Set x-axis based on spatial grid
+				ax.set_ylim(ymin, ymax)  # Set y-axis based on provided limits
+				line, = ax.plot([], [], lw=2, color="blue")
+			\end{lstlisting}
+			The code initializes a new figure and axis using \texttt{plt.subplots()}. The x-axis limits are set from \(0\) to the maximum value in \texttt{x}, ensuring the plot covers the entire spatial domain. The y-axis limits are set according to \texttt{ymin} and \texttt{ymax} to maintain consistent bounds across frames. The wave data will be plotted as a blue line with a specified line width (\texttt{lw=2}), which is initially empty (no data) as the plot will be updated by the animation.
+			
+			\paragraph{2. Initializing the Line Plot with \texttt{init} Function}
+			:
+			\begin{lstlisting}[language=Python]
+				def init():
+					line.set_data([], [])
+					return line,
+			\end{lstlisting}
+			The \texttt{init} function sets the initial state of the line plot to be empty by calling \texttt{line.set\_data([], [])}. This is necessary for the animation framework, as it prepares the plot for each frame update. Returning \texttt{line,} ensures compatibility with \texttt{FuncAnimation}, indicating which graphical elements will be updated.
+			
+			\paragraph{3. Defining the \texttt{animate} Function to Update Frames}
+			:
+			\begin{lstlisting}[language=Python]
+				def animate(n):
+					u, current_time = results[n]
+					line.set_data(x, u)
+					ax.set_title(f"Wave Solution at t = {current_time:.3f}")
+					return line,
+			\end{lstlisting}
+			The \texttt{animate} function is called for each frame in the animation. At each time step, it retrieves the displacement data \texttt{u} and time \texttt{current\_time} from \texttt{results} at index \texttt{n}. The line plot is updated by setting its data to the current displacement \texttt{u} and spatial points \texttt{x}. The title is also updated to reflect the current time, providing context for each frame. Returning \texttt{line,} ensures that the plot is redrawn with the updated data for each frame.
+			
+			\paragraph{4. Creating the Animation with \texttt{FuncAnimation}}
+			:
+			\begin{lstlisting}[language=Python]
+				ani = FuncAnimation(fig, animate, init_func=init, frames=len(results), blit=True)
+			\end{lstlisting}
+			The \texttt{FuncAnimation} function from \texttt{matplotlib.animation} is used to create the animation. It takes the following arguments:
+			\begin{itemize}
+				\item \texttt{fig}: The figure object to animate.
+				\item \texttt{animate}: The function that updates the plot data for each frame.
+				\item \texttt{init\_func=init}: The initialization function that prepares the line plot.
+				\item \texttt{frames=len(results)}: The total number of frames, based on the length of \texttt{results}.
+				\item \texttt{blit=True}: Improves performance by only redrawing parts that have changed.
+			\end{itemize}
+			This setup allows the wave solution to be animated smoothly over the time steps stored in \texttt{results}.
+			
+			\paragraph{5. Defining the Output Path and Saving the Animation as HTML}
+			:
+			\begin{lstlisting}[language=Python]
+				html_path = os.path.join(save_dir, filename)
+				ani.save(html_path, writer=HTMLWriter())
+			\end{lstlisting}
+			The output path for the HTML animation file is defined by combining \texttt{save\_dir} and \texttt{filename}. The \texttt{ani.save} function is called to save the animation as an HTML file using the \texttt{HTMLWriter}. This generates a standalone HTML file that can be opened in any web browser to view the animation interactively.
+			
+			\paragraph{6. Confirmation Message}
+			:
+			\begin{lstlisting}[language=Python]
+				print(f"HTML animation saved as {html_path}")
+			\end{lstlisting}
+			A print statement confirms that the HTML animation has been successfully saved, displaying the path for easy reference. This message helps users verify that the animation file was created as expected.
+			
+			\paragraph{Summary}
+			
+			The \texttt{generate\_html\_animation} function creates a web-based animation of the wave’s time evolution, saving it as an HTML file. This provides a highly accessible and interactive way to visualize the wave simulation in a browser, enabling users to examine the behavior of the wave over time with ease. This visualization is particularly useful for presentations, educational purposes, and in-depth analysis of wave behavior across the simulation.
+		
+		
+	
+	
+	
+		\newpage	
+	\section{Verification}
+	
+	Verification of the wave equation solver is essential to ensure that the numerical methods accurately capture the theoretical behavior of the wave. This section presents a verification test using an exact solution, which is compared against the numerical solution to validate the solver’s correctness across different implementations (scalar, vectorized, and vectorized2).
+	
+		\subsection{Function \texttt{test\_quadratic}}
+		
+			The \texttt{test\_quadratic} function is a verification test for the wave equation solver. It tests the solver’s accuracy by comparing its output to a known exact solution:
+			\[
+			u(x, t) = x(L - x)(1 + 0.5 \, t),
+			\]
+			where \( L \) is the length of the spatial domain. This function evaluates the solver across different implementations, asserting that the numerical solution matches the exact solution within a specified tolerance.
+			
+			\subsubsection{Code Explanation}
+			
+			The function \texttt{test\_quadratic} is structured as follows:
+			
+			\begin{lstlisting}[language=Python, caption=Function Definition]
+				def test_quadratic():
+			\end{lstlisting}
+			
+			\paragraph{Parameters and Exact Solution Setup}
+			:
+			\begin{lstlisting}[language=Python]
+				# Parameters for the test
+				L = 2.5
+				c = 1.5
+				C = 0.75
+				Nx = 6  # Very coarse mesh for this exact test
+				dt = C * (L / Nx) / c
+				T = 18
+				
+				# Exact solution for u(x, t) = x(L - x)(1 + 0.5*t)
+				u_exact = lambda x, t: x * (L - x) * (1 + 0.5 * t)
+			\end{lstlisting}
+			Here, we define the parameters for the test:
+			\begin{itemize}
+				\item \( L = 2.5 \): Length of the spatial domain.
+				\item \( c = 1.5 \): Wave propagation speed.
+				\item \( C = 0.75 \): Courant number, ensuring stability of the numerical scheme.
+				\item \( Nx = 6 \): Number of spatial grid points (a coarse mesh is used to keep calculations simple).
+				\item \( dt = \frac{C \cdot L}{Nx \cdot c} \): Time step, computed to satisfy the Courant condition.
+				\item \( T = 18 \): Total simulation time.
+			\end{itemize}
+			
+			The exact solution \( u(x, t) = x(L - x)(1 + 0.5 \, t) \) is defined as a lambda function, allowing us to evaluate the exact displacement at any point \( x \) and time \( t \) for comparison with the numerical solution.
+			
+			\paragraph{Initial and Boundary Conditions}
+			:
+			\begin{lstlisting}[language=Python]
+				I = lambda x: u_exact(x, 0)  # Initial displacement
+				V = lambda x: 0.5 * u_exact(x, 0)  # Initial velocity
+				f = lambda x, t: np.zeros_like(x) + 2 * c ** 2 * (1 + 0.5 * t)  # Source term
+			\end{lstlisting}
+			
+			These definitions set up the initial and boundary conditions:
+			\begin{itemize}
+				\item \texttt{I(x)}: Initial displacement, derived from the exact solution \( u(x, 0) \).
+				\item \texttt{V(x)}: Initial velocity, set to half of the initial displacement, \( 0.5 \, u(x, 0) \).
+				\item \texttt{f(x, t)}: Source term, defined as \( f(x, t) = 2c^2(1 + 0.5 \, t) \), to ensure that the exact solution satisfies the wave equation with this source.
+			\end{itemize}
+			
+			\paragraph{Mathematical Verification Condition}
+			
+			The exact solution \( u(x, t) \) is derived by substituting it into the wave equation:
+			\[
+			u_{tt} = c^2 u_{xx} + f(x, t).
+			\]
+			The source term \( f(x, t) = 2c^2(1 + 0.5 \, t) \) guarantees that the exact solution satisfies the wave equation, making it an appropriate reference for validating the numerical solution.
+			
+			\paragraph{Accuracy Assertion Function}
+			
+			The \texttt{assert\_no\_error} function checks the accuracy of the numerical solution by comparing it to the exact solution:
+			\begin{lstlisting}[language=Python]
+				def assert_no_error(u, x, t, n):
+					u_e = u_exact(x, t[n])  # Exact solution at time step n
+					tol = 1E-13  # Tolerance for error comparison
+					diff = np.abs(u - u_e).max()  # Max difference between computed and exact
+					print(diff)
+					
+					assert diff < tol, f"Difference {diff} exceeds tolerance at step {n}"
+			\end{lstlisting}
+			
+			The \texttt{assert\_no\_error} function:
+			\begin{itemize}
+				\item Computes the exact solution \( u_e = u(x, t[n]) \) at each time step \( n \).
+				\item Sets a tolerance \( \texttt{tol} = 1 \times 10^{-13} \) to define the acceptable error limit.
+				\item Calculates the maximum difference \( \texttt{diff} \) between the exact and computed solutions at each time step. If \texttt{diff} exceeds \texttt{tol}, an assertion error is raised, signaling that the numerical solution deviates too much from the exact solution.
+			\end{itemize}
+			
+			\paragraph{Running the Test on Different Solver Versions}
+			
+			The test is run on all versions of the solver (scalar, vectorized, and vectorized2) to confirm that each implementation produces consistent and accurate results:
+			\begin{lstlisting}[language=Python]
+				for version in ['scalar', 'vectorized', 'vectorized2']:
+					print(f"Testing {version} solver...")
+				
+					try:
+						# Run the solver with the assertion check as the user action
+						solve_wave_equation(
+							I=I,
+							V=V,
+							f=f,
+							c=c,
+							L=L,
+							dt=dt,
+							C=C,
+							T=T,
+							user_action=assert_no_error,
+							version=version
+							)
+						print(f"{version} solver: Pass")
+					except AssertionError as e:
+						print(f"{version} solver: Fail - {e}")
+				
+				print("All tests completed.")
+			\end{lstlisting}
+			
+			The loop iterates over the available versions and calls the \texttt{solve\_wave\_equation} function with the \texttt{assert\_no\_error} function as the \texttt{user\_action} callback. This setup allows the test to verify each solver implementation, outputting any deviations from the expected solution.
+			
+			\subsubsection{Test Results}
+			
+					
+			\begin{verbatim}
+				Testing scalar solver...
+				CPU time (s) of scalar solver: 0.00199
+				scalar solver: Pass
+				Testing vectorized solver...
+				CPU time (s) of vectorized solver: 0.00103
+				vectorized solver: Pass
+				Testing vectorized2 solver...
+				CPU time (s) of vectorized2 solver: 0.00089
+				vectorized2 solver: Pass
+				All tests completed.
+			\end{verbatim}
+			
+					
+			
+			\subsubsection{Summary of Verification Test}
+			
+			The \texttt{test\_quadratic} function serves as a robust verification test for the wave equation solver, ensuring that all solver versions accurately reproduce the exact solution \( u(x, t) = x(L - x)(1 + 0.5 \, t) \) within a tight tolerance. By comparing each numerical solution to this known solution, the test confirms the correctness of the solver under ideal conditions. The success message indicates that all versions produce consistent, accurate results, verifying the reliability of the solver’s implementations.
+		
+		\subsection{Function \texttt{convergence\_rates}}
+		
+			The \texttt{convergence\_rates} function estimates the convergence rates of the wave equation solver. Convergence rates are essential for assessing the accuracy of a numerical method as the spatial and temporal discretization are refined. This function gradually reduces the time step by a factor of two over a specified number of mesh refinements and computes the error and corresponding convergence rate at each level.
+			
+			\subsubsection{Code Explanation}
+			
+			The function \texttt{convergence\_rates} is structured as follows:
+			
+			\begin{lstlisting}[language=Python, caption=Function Definition]
+				def convergence_rates(u_exact, I, V, f, c, L, dt0, num_meshes, C, T, solver_choice='scalar'):
+			\end{lstlisting}
+			
+			**Parameters**:
+			\begin{itemize}
+				\item \texttt{u\_exact}: The exact solution function for \( u(x, t) \).
+				\item \texttt{I, V}: Functions for the initial displacement and initial velocity.
+				\item \texttt{f}: Source term function.
+				\item \texttt{c}: Wave propagation speed.
+				\item \texttt{L}: Length of the spatial domain.
+				\item \texttt{dt0}: Initial time step size.
+				\item \texttt{num\_meshes}: Number of times the mesh will be refined (by halving the time step).
+				\item \texttt{C}: Courant number, controlling stability.
+				\item \texttt{T}: Total simulation time.
+				\item \texttt{solver\_choice}: The version of the solver to use (e.g., \texttt{'scalar'}, \texttt{'vectorized'}, etc.).
+			\end{itemize}
+			
+			\paragraph{Error Computation Function}
+			
+			To track and compute the error, the nested function \texttt{compute\_error} is defined:
+			
+			\begin{lstlisting}[language=Python]
+				def compute_error(u, x, t, n):
+					global error
+					if n == 0:
+						error = 0
+					else:
+						# Calculate max error for the current time step
+						current_error = np.abs(u - u_exact(x, t[n])).max()
+						error = max(error, current_error)
+			\end{lstlisting}
+			
+			The \texttt{compute\_error} function calculates the maximum error between the computed solution \( u \) and the exact solution \( u_{\text{exact}} \) at each time step. The function performs the following operations:
+			
+			1. **Initialization at the Start of Simulation**:
+			If \texttt{n = 0}, the function sets the global variable \texttt{error} to zero, initializing it for the current simulation. This ensures that any residual error from previous mesh levels is cleared.
+			
+			2. **Computing the Maximum Absolute Error**:
+			For each subsequent time step (\texttt{n} > 0), the function calculates the error as the maximum absolute difference between the computed and exact solutions:
+			\[
+			\text{current\_error} = \max \left( |u(x, t) - u_{\text{exact}}(x, t)| \right)
+			\]
+			Here:
+			\begin{itemize}
+				\item \( u(x, t) \): The numerical solution at spatial points \( x \) and time \( t \).
+				\item \( u_{\text{exact}}(x, t) \): The exact analytical solution at spatial points \( x \) and time \( t \).
+				\item \( \max \left( |u(x, t) - u_{\text{exact}}(x, t)| \right) \): The maximum absolute error at the current time step.
+			\end{itemize}
+			This computation captures the largest deviation between the computed and exact solutions across the spatial domain at each time step, ensuring that any local discrepancies are detected.
+			
+			3. **Updating the Cumulative Maximum Error**:
+			The \texttt{compute\_error} function then updates the cumulative maximum error:
+			\[
+			\text{error} = \max(\text{error}, \text{current\_error})
+			\]
+			This operation ensures that \texttt{error} stores the largest observed error across all time steps for a given mesh refinement level. This cumulative error is crucial for convergence analysis, as it provides a measure of the worst-case deviation for each mesh level.
+			
+			**Purpose and Use of Global Variable \texttt{error}**:
+			
+			The use of \texttt{error} as a global variable allows it to be updated within \texttt{compute\_error} and accessed outside the function scope, storing the final error for each mesh level. This setup is essential because it enables the main function to record and analyze error values across multiple mesh levels without resetting the error at each time step.
+			
+			\paragraph{Setting Up Error and Step Size Lists}
+			
+			To facilitate the calculation of convergence rates, the lists \texttt{E} and \texttt{h} are initialized to store the error and time step size values for each mesh level, as shown below:
+			
+			\begin{lstlisting}[language=Python]
+				# Initialize lists to store error and step size values
+				E = []
+				h = []
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \texttt{E}: Stores the cumulative maximum error for each mesh refinement level, as calculated by the \texttt{compute\_error} function.
+				\item \texttt{h}: Stores the time step size \( h = \Delta t \) corresponding to each mesh level.
+			\end{itemize}
+			
+			At each mesh refinement level, these lists are updated with:
+			\[
+			E[i] = \max \left( |u(x, t) - u_{\text{exact}}(x, t)| \right),
+			\]
+			\[
+			h[i] = \Delta t,
+			\]
+			where \( E[i] \) represents the maximum observed error for the \( i \)-th refinement level, and \( h[i] \) is the associated time step size. By storing these values across all mesh levels, we can analyze the convergence behavior of the solver by calculating the convergence rates, which quantify how quickly the error decreases as the time step size \( h \) is reduced.
+			
+			These lists enable us to calculate convergence rates in subsequent steps and provide insights into the accuracy and stability of the numerical method across progressively finer meshes.
+			
+			
+			\paragraph{Mesh Refinement Loop}
+			
+			The main loop runs the solver over a series of meshes with progressively smaller time steps:
+			
+			\begin{lstlisting}[language=Python]
+				# Starting time step and corresponding spatial step
+				dt = dt0
+				dx = dt * c / C  # Based on Courant number and wave speed
+				
+				for i in range(num_meshes):
+					# Run the solver with the current resolution
+					solve_wave_equation(I, V, f, c, L, dt, C, T, user_action=compute_error, version=solver_choice)
+					
+					# Store the computed error and step size
+					E.append(error)
+					h.append(dt)
+					
+					# Debugging output to trace errors and steps
+					print(f"Mesh {i + 1}: dt = {dt:.5e}, error = {error:.5e}")
+					
+					# Halve the time step for the next iteration
+					dt /= 2
+					dx = dt * c / C
+			\end{lstlisting}
+			
+			For each iteration, the function:
+			\begin{itemize}
+				\item Runs the solver with the current time step size, \texttt{dt}, and Courant number \texttt{C}, using \texttt{compute\_error} as the \texttt{user\_action} to calculate the error.
+				\item Appends the maximum error (stored in \texttt{error}) and the time step size \texttt{dt} to lists \texttt{E} and \texttt{h}, respectively.
+				\item Prints a debug message showing the current time step and error.
+				\item Halves the time step \texttt{dt} for the next mesh refinement.
+			\end{itemize}
+			
+			\paragraph{Convergence Rate Calculation}
+			
+			After running the simulations for all mesh levels, the convergence rates are calculated as follows:
+			
+			\begin{lstlisting}[language=Python]
+				rates = []
+				for i in range(1, num_meshes):
+					if E[i] > 0 and E[i - 1] > 0:
+						rate = np.log(E[i] / E[i - 1]) / np.log(h[i] / h[i - 1])
+					else:
+						rate = float('inf')  # Avoid division by zero
+					rates.append(rate)
+					print(f"Convergence rates {i + 1}: r = {rate:.5e}, error = {E[i]:.5e}")
+			\end{lstlisting}
+			
+			The convergence rate \( r \) for each successive mesh refinement level \( i \) is computed using the formula:
+			\[
+			r = \frac{\log \left( \frac{E[i]}{E[i - 1]} \right)}{\log \left( \frac{h[i]}{h[i - 1]} \right)},
+			\]
+			where:
+			\begin{itemize}
+				\item \( E[i] \): The cumulative maximum error for the \( i \)-th mesh refinement level.
+				\item \( h[i] \): The time step size (or grid spacing) for the \( i \)-th mesh refinement level.
+			\end{itemize}
+			
+			\paragraph{Mathematical Derivation of Convergence Rate Formula}
+			
+			The convergence rate formula measures how the error \( E[i] \) decreases relative to the step size \( h[i] \) across consecutive mesh levels. This calculation assumes that the error behaves as:
+			\[
+			E \propto h^r,
+			\]
+			where \(r \) represents the order of accuracy. Given two consecutive errors \( E[i] \) and \( E[i-1] \) and corresponding step sizes \( h[i] \) and \( h[i-1] \), we have:
+			\[
+			\frac{E[i]}{E[i-1]} \approx \left( \frac{h[i]}{h[i-1]} \right)^p.
+			\]
+			Taking the logarithm of both sides, we obtain:
+			\[
+			\log \left( \frac{E[i]}{E[i-1]} \right) \approx p \cdot \log \left( \frac{h[i]}{h[i-1]} \right).
+			\]
+			We find that the convergence rate \( r \) is approximated by:
+			\[
+			r \approx \frac{\log \left( \frac{E[i]}{E[i-1]} \right)}{\log \left( \frac{h[i]}{h[i-1]} \right)}.
+			\]
+			This formulation provides an estimate of the convergence rate between two mesh levels. A rate close to \( r = 2 \) typically indicates second-order convergence, suggesting that the error decreases quadratically as the mesh is refined. This is expected for well-designed wave equation solvers that achieve second-order accuracy.
+			
+			\textbf{Implementation in Code}:
+			\begin{itemize}
+				\item The code checks if both \( E[i] \) and \( E[i - 1] \) are greater than zero to avoid division by zero or taking the logarithm of zero, which would result in undefined behavior.
+				\item The calculated rate \( r \) is then appended to the list \texttt{rates} for storage.
+				\item A print statement provides debugging information by outputting each computed convergence rate and error for the current mesh level, helping verify the solver's convergence behavior.
+			\end{itemize}
+			
+			\paragraph{Returning and Interpreting the Convergence Rates}:
+			
+			\begin{lstlisting}[language=Python]
+				return rates
+			\end{lstlisting}
+			
+			The function returns the list of convergence rates, which provides insights into the solver’s accuracy. Convergence rates close to 2 indicate that the solver exhibits second-order accuracy, meaning that the error approximately halves as the time step size is halved. This behavior is a key criterion for assessing the reliability and accuracy of the solver under mesh refinement.
+			
+			These calculated convergence rates are particularly useful for verifying that the numerical scheme conforms to theoretical expectations. High and stable rates across multiple mesh levels indicate that the solver is performing as expected, accurately capturing the wave behavior as the spatial and temporal resolutions are refined.
+			
+				
+			
+			\subsubsection{Summary of Convergence Test}
+			
+			The \texttt{convergence\_rates} function systematically reduces the time step size and calculates the corresponding convergence rates for the solver. By verifying that the rates align with theoretical expectations (e.g., close to 2 for a second-order accurate method), this test confirms the accuracy and robustness of the wave equation solver.
+	
+		\subsection{Function \texttt{test\_convrate\_sincos}}
+		
+			The \texttt{test\_convrate\_sincos} function evaluates the convergence rate of the wave equation solver using a known exact solution in the form of a sinusoidal wave, which can be accurately represented by the numerical scheme. This test is important for verifying that the solver achieves second-order accuracy in time and space, as theoretically expected for well-designed finite difference solvers.
+			
+			\subsubsection{Code Explanation}
+			
+			The \texttt{test\_convrate\_sincos} function is structured as follows:
+			
+			\begin{lstlisting}[language=Python]
+				def test_convrate_sincos():
+			\end{lstlisting}
+			
+			**Parameters Setup**:
+			\begin{lstlisting}[language=Python]
+				# Define parameters
+				n = m = 2
+				L = 1.0
+			\end{lstlisting}
+			
+			Here, the parameters are set up as follows:
+			\begin{itemize}
+				\item \( n \) and \( m \): Constants that define the frequency of the wave.
+				\item \( L = 1.0 \): The length of the spatial domain.
+			\end{itemize}
+			
+			**Exact Solution**:
+			The exact solution \( u_{\text{exact}}(x, t) \) is defined as a function of both space and time:
+			\begin{lstlisting}[language=Python]
+				u_exact = lambda x, t: np.cos(m * np.pi / L * t) * np.sin(m * np.pi / L * x)
+			\end{lstlisting}
+			
+			The exact solution is:
+			\[
+			u_{\text{exact}}(x, t) = \cos\left(\frac{m \pi}{L} t\right) \sin\left(\frac{m \pi}{L} x\right).
+			\]
+			This solution satisfies the wave equation with a fixed wave speed and without an external force. The oscillatory behavior of \( \cos(t) \) in time and \( \sin(x) \) in space makes this function well-suited for testing the solver’s accuracy, as it provides a smooth solution with known derivatives.
+			
+			**Calling the Convergence Rate Calculation**:
+			The function then calls \texttt{convergence\_rates} to calculate the convergence rate for this exact solution across several mesh refinements:
+			\begin{lstlisting}[language=Python]
+				rates = convergence_rates(
+					u_exact=u_exact,
+					I=lambda x: u_exact(x, 0),   # Initial displacement
+					V=lambda x: 0,               # Initial velocity
+					f=0,                         # Source term, no external force
+					c=1,                         # Wave speed
+					L=L,                         # Length of the domain
+					dt0=0.1,                     # Initial time step size
+					num_meshes=6,                # Number of grid refinements
+					C=0.9,                       # Courant number
+					T=1                          # Total simulation time
+					)
+			\end{lstlisting}
+			
+			The parameters passed to \texttt{convergence\_rates} are:
+			\begin{itemize}
+				\item \texttt{u\_exact}: The exact solution function defined above.
+				\item \texttt{I=lambda x: u\_exact(x, 0)}: Initial displacement, set to \( u_{\text{exact}}(x, 0) \).
+				\item \texttt{V=lambda x: 0}: Initial velocity is set to zero, indicating no initial motion.
+				\item \texttt{f=0}: The source term is zero, meaning there is no external forcing.
+				\item \texttt{c=1}: Wave speed, chosen to match the properties of the exact solution.
+				\item \texttt{L=L}: Spatial domain length.
+				\item \texttt{dt0=0.1}: Initial time step size.
+				\item \texttt{num\_meshes=6}: The number of grid refinements to test.
+				\item \texttt{C=0.9}: Courant number, slightly below 1 to ensure stability.
+				\item \texttt{T=1}: Total simulation time.
+			\end{itemize}
+			
+			The \texttt{convergence\_rates} function refines the mesh six times, progressively halving the time step size, and calculates the convergence rates based on the errors for each refinement level. These rates provide an indication of the numerical solver’s accuracy.
+			
+			\subsubsection{Output and Convergence Check}
+			
+			\begin{lstlisting}[language=Python]
+				# Output the computed convergence rates, rounded for readability
+				print('Rates for sin(x) * cos(t) solution:', [round(r_, 2) for r_ in rates])
+			\end{lstlisting}
+			
+			The computed convergence rates are printed for reference, rounded to two decimal places to enhance readability.
+			
+			\textbf{Assertion for Second-Order Convergence}:
+			\begin{lstlisting}[language=Python]
+				# Assert that the last computed rate is close to 2, indicating second-order accuracy
+				assert abs(rates[-1] - 2) < 0.002, f"Expected rate ~2, but got {rates[-1]}"
+			\end{lstlisting}
+			
+			An assertion statement checks that the last computed rate is approximately 2, which would confirm that the solver achieves second-order accuracy. The test allows for a small tolerance (0.002) to account for numerical fluctuations. If the last rate deviates significantly from 2, the assertion fails, signaling that the solver may not be achieving the expected accuracy.
+			
+			\subsubsection{Convergence Results for Scalar Solver}
+			
+			The output below provides a detailed performance summary for the scalar solver. Each test iteration shows the CPU time required, the time step size \texttt{dt}, and the corresponding error values, demonstrating the accuracy improvements as the mesh resolution is refined. Additionally, convergence rates are calculated, confirming the solver's second-order accuracy.
+			
+			\begin{verbatim}
+				CPU time (s) of scalar solver: 0.00100
+				Mesh 1: dt = 1.00000e-01, error = 1.89472e-02
+				CPU time (s) of scalar solver: 0.00208       
+				Mesh 2: dt = 5.00000e-02, error = 4.58887e-03
+				CPU time (s) of scalar solver: 0.00607       
+				Mesh 3: dt = 2.50000e-02, error = 1.16273e-03
+				CPU time (s) of scalar solver: 0.02331
+				Mesh 4: dt = 1.25000e-02, error = 2.90252e-04
+				CPU time (s) of scalar solver: 0.09178
+				Mesh 5: dt = 6.25000e-03, error = 7.25754e-05
+				CPU time (s) of scalar solver: 0.37134
+				Mesh 6: dt = 3.12500e-03, error = 1.81417e-05
+				Convergence rates step 2: r = 2.04577e+00, error = 4.58887e-03
+				Convergence rates step 3: r = 1.98062e+00, error = 1.16273e-03
+				Convergence rates step 4: r = 2.00214e+00, error = 2.90252e-04
+				Convergence rates step 5: r = 1.99975e+00, error = 7.25754e-05
+				Convergence rates step 6: r = 2.00017e+00, error = 1.81417e-05
+				Rates for sin(x) * cos(t) solution: [2.05, 1.98, 2.0, 2.0, 2.0]
+			\end{verbatim}
+			
+			\subsubsection{Summary of the \texttt{test\_convrate\_sincos} Function}
+			
+			The \texttt{test\_convrate\_sincos} function validates that the wave equation solver achieves second-order accuracy when applied to a smooth, oscillatory solution. By comparing the numerical and exact solutions across progressively finer meshes and computing the convergence rates, this test confirms the solver’s accuracy. A convergence rate close to 2 indicates that the solver meets theoretical expectations, providing confidence in the reliability of the numerical method.
+			
+	\section{GitHub Link to Solver and Exercise Codes and Animations}
+	
+	The developed code, along with the simulation results and animations of various experiments, is available on GitHub. These resources include visualizations of wave behavior under different physical setups and boundary conditions, illustrating the accuracy and stability of the implemented solver.
+	
+	\paragraph{Solver Code Link:}
+	\begin{quote}
+		\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/blob/main/Part_2_WaveEquation/SolverCode/wave_eq_solver_dev.py}{Generalised Wave PDE Solver Code}
+	\end{quote}
+	
+	\paragraph{Exercise Codes Link:}
+	\begin{quote}
+		\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/tree/main/Part_2_WaveEquation/Example_Codes}{Exercise Codes and Setups}
+	\end{quote}
+	
+	\paragraph{Animation Link:}
+	\begin{quote}
+		\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/tree/main/Part_2_WaveEquation/Animations_postProcessing}{Animations}
+	\end{quote}
+	
+		
+		
+		\newpage	
+	\section{Exercise: Simulating a Plucked Guitar String}
+	
+		In this exercise, we use the developed wave equation solver to simulate the behavior of a plucked guitar string. The initial conditions are designed to represent the shape and properties of a plucked string. The simulation aims to capture the wave propagation along the string, saving snapshots of the wave at each time step to produce visualizations and an HTML animation of the wave's evolution.
+	
+		\subsection{Setting Up the Problem}
+		
+			The parameters and initial conditions for the problem are set to reflect the physical characteristics of a plucked guitar string. Key parameters include the length of the domain \( L \), the wave frequency, and the wave speed \( c \), which is calculated based on the frequency and wavelength.
+			
+			\begin{lstlisting}[language=Python]
+				L = 0.75           # Length of the domain
+				x0 = 0.8 * L       # Position where the initial displacement changes slope
+				a = 0.005          # Amplitude of the initial displacement
+				freq = 440         # Frequency of the wave (e.g., for a sound wave)
+				wavelength = 2 * L # Wavelength of the wave, assumed to be twice the domain length
+				c = freq * wavelength  # Wave speed, calculated as frequency times wavelength
+				omega = 2 * np.pi * freq  # Angular frequency of the wave
+				num_periods = 1    # Number of wave periods to simulate
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \( L = 0.75 \): The length of the spatial domain, representing the length of the string.
+				\item \( x_0 = 0.8 \cdot L \): The location where the initial displacement changes slope, representing the point where the string is plucked.
+				\item \( a = 0.005 \): Amplitude of the initial displacement, controlling how far the string is displaced.
+				\item \texttt{freq} \( = 440 \): Frequency of the wave in Hz, which is typical for the note A4 in musical notation.
+				\item \texttt{wavelength} \( = 2 \cdot L \): Wavelength of the wave, assumed to be twice the domain length to reflect the fundamental frequency.
+				\item \( c = \texttt{freq} \times \texttt{wavelength} \): Wave speed, calculated as the product of frequency and wavelength.
+				\item \texttt{omega} \( = 2 \pi \cdot \texttt{freq} \): Angular frequency, calculated from the frequency.
+				\item \texttt{num\_periods} \( = 1 \): Number of wave periods to simulate, ensuring that the simulation captures one full oscillation of the string.
+			\end{itemize}
+			
+			**Simulation Time and Stability Conditions**:
+			\begin{lstlisting}[language=Python]
+				T = 2 * np.pi / omega * num_periods  # Total simulation time for one period
+				C = 0.5            # Courant number, a stability factor for the numerical method
+				Nx = 25            # Number of spatial points along the domain
+				dx = L / Nx        # Spatial step size, calculated based on domain length and spatial points
+				dt = C * dx / c    # Time step size, adjusted based on the Courant number and spatial resolution
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \( T \): Total simulation time, calculated as one period of oscillation based on the angular frequency.
+				\item \( C = 0.5 \): Courant number, which controls the stability of the numerical method by ensuring the ratio of time step to spatial step meets stability criteria.
+				\item \( N_x = 25 \): Number of spatial points along the domain.
+				\item \( dx = \frac{L}{N_x} \): Spatial step size.
+				\item \( dt = \frac{C \cdot dx}{c} \): Time step size, calculated to satisfy the Courant condition.
+			\end{itemize}
+			
+			\subsection{Defining Problem-Specific Functions}
+			
+			The initial displacement and velocity functions are defined to represent the plucking of the guitar string. The initial displacement is set to have a triangular shape, with a change in slope at the plucking point \( x_0 \). The initial velocity is zero, representing a stationary string.
+			
+			\begin{lstlisting}[language=Python]
+				def initial_displacement(x):
+					"""Initial condition for displacement."""
+					return a * x / x0 if x < x0 else a / (L - x0) * (L - x)
+				
+				def initial_velocity(x):
+					"""Initial condition for velocity (e.g., zero velocity)."""
+					return np.zeros_like(x)
+					
+				def source_term(x, t):
+					"""Optional source term f(x, t), here assumed zero."""
+					return np.zeros_like(x)
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \texttt{initial\_displacement(x)}: Defines a piecewise linear function for the initial displacement. If \( x < x_0 \), the displacement increases linearly; otherwise, it decreases linearly.
+				\item \texttt{initial\_velocity(x)}: Defines the initial velocity as zero, indicating no initial motion in the string.
+				\item \texttt{source\_term(x, t)}: Represents the source term \( f(x, t) \), which is zero for this problem, implying no external force acting on the string.
+			\end{itemize}
+			
+			\subsection{Setting Up Directory for Saving Results and Defining Callback Functions}
+			
+			The function defines the directory to save images for visualization, and callback functions for saving results for the GIF and HTML animation:
+			
+			\begin{lstlisting}[language=Python]
+				save_dir = 'path/to/guitar_string_simulation'
+				
+				# Array to store solution data for HTML animation
+				results = []
+				
+				# Capture results for HTML animation
+				def capture_results(u, x, t, n):
+					results.append((u.copy(), t[n]))
+				
+				# Save wave image for GIF generation
+				def save_guitar_string_image(u, x, t, n, C, save_dir=save_dir, ymin=-0.005, ymax=0.005):
+					save_wave_image(u, x, t, n, C, save_dir=save_dir, ymin=ymin, ymax=ymax)
+				
+				# Combined user action that calls both capture_results and save_wave_image
+				def combined_user_action(u, x, t, n):
+					capture_results(u, x, t, n)
+					save_guitar_string_image(u, x, t, n, C)
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \texttt{capture\_results}: Saves wave data for each time step in the \texttt{results} array, enabling it to be later used for HTML animation.
+				\item \texttt{save\_guitar\_string\_image}: Saves images of the wave at each time step to create a GIF, with y-axis limits set to \( -0.005 \) to \( 0.005 \) to capture the wave amplitude.
+				\item \texttt{combined\_user\_action}: Combines the functions \texttt{capture\_results} and \texttt{save\_guitar\_string\_image} into a single callback function.
+			\end{itemize}
+			
+			\subsection{Solving the Wave Equation and Generating Output}
+			
+			The code prompts the user to select a solver version (scalar, vectorized, or vectorized2) and runs the simulation using the chosen version. Afterward, it generates a GIF and an HTML animation of the wave.
+			
+			\begin{lstlisting}[language=Python]
+				# Ask user to choose between solvers
+				solver_choice = input("Choose solver (scalar/vectorized/vectorized2): ").strip()
+				
+				# Use the unified solver based on user choice
+				if solver_choice in ["scalar", "vectorized", "vectorized2"]:
+					solve_wave_equation(
+					I=initial_displacement,
+					V=initial_velocity,
+					f=source_term,
+					c=c,
+					L=L,
+					dt=dt,
+					C=C,
+					T=T,
+					user_action=combined_user_action,
+					version=solver_choice,
+					save_dir=save_dir,
+					)
+				else:
+					print("Invalid choice. Please choose 'scalar', 'vectorized', or 'vectorized2'.")
+				
+				# Generate a GIF from the saved images
+				generate_gif_from_images(image_folder=save_dir, gif_name='wave_animation.gif', duration=0.1)
+				
+				# Generate HTML animation from captured results
+				x = np.linspace(0, L, int(L / dx) + 1)
+				generate_html_animation(x, results, save_dir, ymin=-0.005, ymax=0.005, fps=10)
+			\end{lstlisting}
+			
+			This code block:
+			\begin{itemize}
+				\item Runs the wave equation solver with the initial conditions, wave parameters, and user-specified solver version.
+				\item Generates a GIF from the saved images using \texttt{generate\_gif\_from\_images}, allowing for a sequential view of wave evolution.
+				\item Generates an HTML animation using \texttt{generate\_html\_animation}, which can be viewed interactively in a web browser.
+			\end{itemize}
+			
+			\subsection{Summary of Exercise}
+			
+			This exercise simulates the behavior of a plucked guitar string using the 1D wave equation solver. The setup demonstrates how to configure initial conditions, select solver versions, and use post-processing functions to generate visualizations. By capturing the wave's evolution over time, this exercise provides a detailed view of wave dynamics, which can be used for both educational and analytical purposes.
+			
+			\subsection{Link to Code, Simulation Results and Experiments}
+			
+			The results of the guitar string simulation, including animations of the wave propagation for various Courant numbers, are available on GitHub. The animations illustrate the effect of different Courant numbers on wave stability and accuracy. You can view the results through the following link:
+			
+			\paragraph{Code Link:}
+			\begin{quote}
+				\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/blob/main/Part_2_WaveEquation/Example_Codes/guitar_string.py}{Simulation Results a Plucked Guitar String using developed solver}
+			\end{quote}
+			
+			\paragraph{Animation Link:}
+			\begin{quote}
+				\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/tree/main/Part_2_WaveEquation/Animations_postProcessing/guitar_string_diff_Cu}{Code for Simulation of a Plucked Guitar String using developed solver}
+			\end{quote}
+			
+			\subsubsection{Experiment: Wave Propagation on a Plucked String}
+			
+			As an additional experiment, this exercise can be expanded to replicate the classic demonstration of wave propagation on a plucked string, as shown on the Penn State Acoustics website:
+			
+			\begin{quote}
+				\href{https://www.acs.psu.edu/drussell/Demos/Pluck-Fourier/Pluck-Fourier.html}{Theory and Experiment behind a Plucked Guitar String}
+			\end{quote}
+			
+			In this demonstration, the initial conditions set up a triangular shape along the string, which corresponds to plucking the string at a specific point. The wave travels back and forth, reflecting at the ends, illustrating the standing wave patterns that form due to constructive and destructive interference of waves traveling in opposite directions.
+			
+			To replicate this in our solver:
+			\begin{itemize}
+				\item Set the initial displacement as a triangular shape, with the peak at the plucking point (e.g., 80\% of the string length).
+				\item Set the initial velocity to zero, representing a stationary string before plucking.
+				\item Run the simulation over multiple periods to observe the formation of standing wave patterns and analyze how harmonics contribute to the overall wave shape.
+			\end{itemize}
+			
+			This experiment provides insight into wave interference, boundary reflections, and the formation of harmonic frequencies, contributing to a deeper understanding of wave dynamics in musical instruments like the guitar.
+		
+	 \section{Exercise: Simulating Standing Waves}
+	 
+		 In this exercise, we use the developed wave equation solver to simulate standing waves on a string with fixed endpoints. Standing waves occur when a wave reflects back and forth in a confined space, producing stable patterns based on constructive and destructive interference. The simulation incorporates phase changes upon reflection, a characteristic behavior observed in standing waves.
+		 
+		 \subsection{Setting Up the Problem}
+		 
+		 We simulate a standing wave on a domain with fixed endpoints, where the wave speed, domain length, and initial displacement are set to produce a standing wave pattern. Fixed boundary conditions create a \(180^\circ\) phase change upon reflection, which contributes to the formation of nodes (points of no motion) and antinodes (points of maximum motion) along the wave.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	L = 12              # Length of the domain
+		 	A = 1               # Amplitude of the standing wave
+		 	m = 1               # Mode number
+		 	c = 2               # Wave speed
+		 	C = 0.5             # Courant number
+		 	Nx = 50             # Number of spatial points
+		 	dx = L / Nx         # Spatial step size
+		 	dt = C * dx / c     # Time step size based on Courant condition
+		 	T = 10              # Total simulation time
+		 	save_dir = r'path/to/standing_wave_simulation'
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item \( L = 12 \): Length of the domain.
+		 	\item \( A = 1 \): Amplitude of the standing wave, controlling the initial displacement's maximum height.
+		 	\item \( m = 1 \): Mode number, determining the number of half-wavelengths fitting into the domain.
+		 	\item \( c = 2 \): Wave speed.
+		 	\item \( C = 0.5 \): Courant number, meeting the stability requirement.
+		 	\item \( N_x = 50 \): Number of spatial points.
+		 	\item \( dx = \frac{L}{N_x} \): Spatial step size.
+		 	\item \( dt = \frac{C \cdot dx}{c} \): Time step size, calculated based on the Courant condition.
+		 \end{itemize}
+		 
+		 \subsection{Phase Change upon Reflection and Boundary Conditions}
+		 
+		 A wave on a string reflects with a \(180^\circ\) phase change at fixed endpoints, meaning that a crest reflecting from a fixed boundary becomes a trough and vice versa. This phase change is essential for forming standing waves, as it enables nodes (points of zero displacement) to remain stationary while antinodes oscillate with maximum amplitude.
+		 
+		 When waves reflect from a free boundary, such as a lighter string meeting a heavier one, no phase change occurs, allowing continuous motion. In this simulation, we use Dirichlet (fixed) boundary conditions to enforce the phase change, contributing to the formation of stable standing wave patterns. The relationship between fixed and free reflections can be further observed when studying wave behavior at boundaries of differing mass densities.
+		 
+		 \subsection{Defining Initial Conditions for a Standing Wave}
+		 
+		 The initial displacement is defined as a sinusoidal shape that matches the expected standing wave pattern. The initial velocity is set to zero, implying the wave starts from rest.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	def initial_displacement(x):
+		 		return A * np.sin(np.pi * m * x / L)
+		 	
+		 	def initial_velocity(x):
+		 		return np.zeros_like(x)
+		 	
+		 	def source_term(x, t):
+		 		return np.zeros_like(x)
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item \texttt{initial\_displacement(x)}: Defines the initial standing wave profile:
+		 	\[
+		 	u(x, 0) = A \sin\left(\frac{\pi m x}{L}\right).
+		 	\]
+		 	\item \texttt{initial\_velocity(x)}: Sets the initial velocity to zero.
+		 	\item \texttt{source\_term(x, t)}: No external forcing is applied, so \( f(x, t) = 0 \).
+		 \end{itemize}
+		 
+		 \subsection{Capturing Simulation Data for Visualization}
+		 
+		 The simulation results are stored for animation purposes, enabling both GIF and HTML animations of the standing wave pattern.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	results = []
+		 	
+		 	def capture_results(u, x, t, n):
+		 		results.append((u.copy(), t[n]))
+		 	
+		 	def combined_user_action(u, x, t, n):
+			 	capture_results(u, x, t, n)
+			 	save_wave_image(u, x, t, n, C, save_dir=save_dir, ymin=-A, ymax=A)
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item \texttt{capture\_results}: Stores the wave solution at each time step for HTML animation.
+		 	\item \texttt{combined\_user\_action}: Combines result capturing with saving wave images for the GIF.
+		 \end{itemize}
+		 
+		 \subsection{Running the Simulation and Generating Output}
+		 
+		 The wave equation solver is run with Dirichlet boundary conditions to enforce fixed endpoints. Afterward, GIF and HTML animations are generated to visualize the wave pattern.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	solve_wave_equation(
+			 	I=initial_displacement,
+			 	V=initial_velocity,
+			 	f=source_term,
+			 	c=c,
+			 	L=L,
+			 	dt=dt,
+			 	C=C,
+			 	T=T,
+			 	user_action=combined_user_action,
+			 	version='scalar',
+			 	save_dir=save_dir,
+			 	boundary='Dirichlet'
+			 	)
+		 	
+		 	generate_gif_from_images(image_folder=save_dir, gif_name='wave_animation.gif', duration=0.1)
+		 	
+		 	x = np.linspace(0, L, Nx + 1)
+		 	generate_html_animation(x, results, save_dir, filename="wave_animation.html", ymin=-A, ymax=A, fps=10)
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item The solver is configured with Dirichlet (fixed) boundary conditions, which ensure that the wave undergoes a \(180^\circ\) phase change upon reflection.
+		 	\item \texttt{generate\_gif\_from\_images} and \texttt{generate\_html\_animation} create visualizations of the standing wave.
+		 \end{itemize}
+		 
+		 \subsection{Summary of the Standing Wave Simulation}
+		 
+		 This simulation illustrates the formation of standing waves in a string with fixed endpoints. The Dirichlet boundary conditions enforce a \(180^\circ\) phase change, essential for forming nodes and antinodes. The setup can be modified to explore the effects of different boundary conditions, such as Neumann (free) boundaries, which exhibit no phase change. Such variations are useful for understanding the principles behind sound production in stringed instruments and wave behavior across boundaries of differing densities.
+	 
+	 	
+	 	
+	 \section{Example: Standing Wave with Exact Solution Comparison}
+	 
+		 In this example, we solve a wave equation for a standing wave on a domain of length \( L = 0.75 \), with the wave mode \( m = 1 \) and wave speed \( c = 2 \). We use a Courant number \( C = 0.5 \) for stability, and set the number of spatial points \( N_x = 25 \). This setup provides a scenario where we can compare the numerical solution against an analytical, exact solution to assess the accuracy of the implemented solver.
+		 
+		 \subsection{Problem Setup and Parameters}
+		 
+		 The setup starts with defining key parameters, including the length of the domain, wave speed, and Courant number, which determines the stability of the simulation.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	# Parameters for the Wave Equation
+		 	L = 0.75               # Length of the domain
+		 	A = 0.005              # Amplitude of the standing wave
+		 	m = 1                  # Mode number of the standing wave
+		 	c = 2                  # Wave speed
+		 	C = 0.5                # Courant number for stability
+		 	Nx = 25                # Number of spatial points
+		 	dx = L / Nx            # Spatial step size
+		 	dt = C * dx / c        # Time step size based on the Courant number
+		 	T = 2                  # Total simulation time
+		 \end{lstlisting}
+		 
+		 \subsection{Exact Solution for Standing Wave}
+		 
+		 For this problem, the exact solution to the wave equation for a standing wave is used to evaluate the accuracy of the numerical solver. In a standing wave scenario, each point in the domain oscillates in place without a net movement along the spatial direction. This behavior results from constructive and destructive interference of two traveling waves moving in opposite directions. The general form of the solution for a standing wave is derived from the separation of variables in the wave equation.
+		 
+		 \subsubsection{Mathematical Representation of the Exact Solution}
+		 
+		 For a wave equation in one dimension with fixed boundaries, the exact solution \( u(x, t) \) for a standing wave can be expressed as:
+		 \[
+		 u(x, t) = A \sin\left( \frac{m \pi x}{L} \right) \cos\left( \frac{m \pi c t}{L} \right),
+		 \]
+		 where:
+		 \begin{itemize}
+		 	\item \( A \): Amplitude of the wave.
+		 	\item \( m \): Mode number, which determines the number of half-wavelengths that fit within the domain \( L \).
+		 	\item \( L \): Length of the spatial domain.
+		 	\item \( c \): Wave speed, which affects the temporal frequency of the wave.
+		 	\item \( x \) and \( t \): Spatial and temporal coordinates, respectively.
+		 \end{itemize}
+		 
+		 \subsubsection{Interpretation of the Solution Components}
+		 
+		 - The spatial term \( \sin\left( \frac{m \pi x}{L} \right) \) describes the shape of the wave along the length of the domain at any given time. The mode number \( m \) determines the number of nodes (points of zero amplitude) along the length, with \( m = 1 \) representing the fundamental frequency and \( m = 2, 3, \dots \) representing higher harmonics.
+		 
+		 - The temporal term \( \cos\left( \frac{m \pi c t}{L} \right) \) governs the oscillation of each point in the domain, producing periodic oscillations without spatial translation. The frequency of oscillation is proportional to the wave speed \( c \) and the mode number \( m \).
+		 
+		 \subsubsection{Code Implementation of the Exact Solution}
+		 
+		 The exact solution is implemented in the following Python function, allowing for comparison with the numerical solution at each time step. This function takes the spatial coordinates \( x \) and a specific time \( t \) and returns the wave amplitude \( u(x, t) \) at those points.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	def exact_solution(x, t):
+			 	"""Exact solution of the wave equation for a standing wave."""
+			 	return A * np.sin(np.pi * m * x / L) * np.cos(np.pi * m * c * t / L)
+		 \end{lstlisting}
+		 
+		 \subsubsection{Purpose of the Exact Solution in Error Analysis}
+		 
+		 Using this exact solution, we calculate error norms, such as the L2 and maximum errors, by comparing the exact and numerical solutions. At each time step, these error metrics provide insight into the accuracy of the numerical method and highlight any discrepancies due to factors like discretization, boundary conditions, or numerical instability.
+		 
+		 This exact solution serves as a benchmark, allowing us to verify that the numerical scheme converges toward the true solution as we refine the spatial and temporal discretizations.
+		 
+		 
+		 \subsection{Initial and Boundary Conditions}
+		 
+		 For this simulation, the initial displacement is given by the exact solution at \( t = 0 \), while the initial velocity is set to zero, indicating no initial movement.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	def initial_displacement(x):
+			 	"""Initial displacement of the wave, matching the exact solution."""
+		 		return A * np.sin(np.pi * m * x / L)
+		 	
+		 	def initial_velocity(x):
+		 		"""Initial velocity of the wave (set to zero for a standing wave)."""
+		 		return np.zeros_like(x)
+		 	
+		 	def source_term(x, t):
+		 		"""Source term (set to zero for this example)."""
+		 		return np.zeros_like(x)
+		 \end{lstlisting}
+		 
+		 \subsection{Error Calculation}
+		 
+		 To evaluate the accuracy of the numerical solution, we calculate two important error norms at each time step: the L2 norm and the maximum error norm. These metrics provide a quantitative measure of how closely the numerical solution approximates the exact solution.
+		 
+		 \subsubsection{L2 Norm Error Calculation}
+		 
+		 The L2 norm (or root mean square error) provides a measure of the average difference between the numerical solution \( u_{\text{num}} \) and the exact solution \( u_{\text{exact}} \) across the spatial domain. Mathematically, it is defined as:
+		 \[
+		 \text{L2 Error} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} \left( u_{\text{num}}[i] - u_{\text{exact}}[i] \right)^2},
+		 \]
+		 where:
+		 \begin{itemize}
+		 	\item \( N \) is the number of spatial points.
+		 	\item \( u_{\text{num}}[i] \) and \( u_{\text{exact}}[i] \) are the numerical and exact solutions, respectively, at spatial point \( i \).
+		 \end{itemize}
+		 The L2 norm is useful for measuring the overall error distributed across the domain. A smaller L2 norm indicates that, on average, the numerical solution is close to the exact solution over the entire domain.
+		 
+		 \subsubsection{Maximum Error Norm Calculation}
+		 
+		 The maximum error norm (or \( L_\infty \) norm) provides a measure of the largest pointwise difference between the numerical and exact solutions across the domain. It is defined as:
+		 \[
+		 \text{Max Error} = \max_{i} \left| u_{\text{num}}[i] - u_{\text{exact}}[i] \right|.
+		 \]
+		 This metric captures the maximum deviation between the numerical and exact solutions at any point in the domain, providing a measure of the worst-case error.
+		 
+		 \subsubsection{Implementation of Error Calculation in Code}
+		 
+		 The error norms are calculated in the following Python function, which takes as input the numerical solution \( u_{\text{num}} \) and the exact solution \( u_{\text{exact}} \). The function computes both the L2 and maximum errors and returns them.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	def calculate_error(u_num, u_exact):
+			 	"""Calculates L2 and Max errors."""
+			 	error_L2 = np.sqrt(np.mean((u_num - u_exact) ** 2))  # L2 norm error
+			 	error_max = np.max(np.abs(u_num - u_exact))          # Max error
+			 	
+			 	return error_L2, error_max
+		 \end{lstlisting}
+		 
+		 \subsubsection{Purpose of Error Calculation}
+		 
+		 By calculating both the L2 and maximum error norms at each time step, we gain insight into the accuracy and stability of the numerical scheme. These error norms help identify:
+		 \begin{itemize}
+		 	\item \textbf{Global Accuracy (L2 Norm):} The L2 norm provides an overall measure of accuracy across the entire spatial domain.
+		 	\item \textbf{Pointwise Deviation (Max Error):} The maximum error highlights the worst-case deviation, which is essential for ensuring that the numerical solution does not diverge significantly from the exact solution at any specific point.
+		 \end{itemize}
+		 Tracking these errors over time helps in diagnosing issues such as numerical instability, boundary inaccuracies, or discretization errors. Smaller errors indicate a closer alignment of the numerical solution with the exact solution, which is critical for validating the effectiveness of the chosen numerical method.
+		 
+		 
+		 \subsection{Visualization of Results with Error Comparison}
+		 
+		 To visualize the results, we save images showing both the numerical and exact solutions, displaying error norms in the plot title for each frame.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	def save_wave_image_with_exact(u_num, x, t, n, C, save_dir='wave_images', ymin=-0.01, ymax=0.01):
+			 	"""Saves images with both numerical and exact solutions at each time step."""
+			 	if not os.path.exists(save_dir):
+				 	os.makedirs(save_dir)
+				 	
+			 	u_exact = exact_solution(x, t[n])  # Exact solution at this time step
+			 	# Calculate error norms using the `calculate_error` function
+			 	error_L2, error_max = calculate_error(u_num, u_exact)
+			 	
+			 	# Plot numerical and exact solutions
+			 	plt.figure(figsize=(8, 4))
+			 	plt.plot(x, u_num, label="Numerical Solution", color="blue")
+			 	plt.plot(x, u_exact, label="Exact Solution", linestyle="--", color="red")
+			 	plt.ylim(ymin, ymax)
+			 	plt.xlim(0, L)
+			 	plt.xlabel('x')
+			 	plt.ylabel('u(x,t)')
+			 	
+			 	# Add Courant number, time, and error norms to the plot title
+			 	plt.title(f"Wave at t = {t[n]:.3f}, C = {C}, L2 Error = {error_L2:.5e}, Max Error = {error_max:.5e}")
+			 	
+			 	plt.legend()
+			 	plt.grid(True)
+			 	plt.savefig(os.path.join(save_dir, f'wave_step_{n:04d}.png'))
+			 	plt.close()
+		 \end{lstlisting}
+		 
+		 \subsection{Running the Solver and Generating the Animation}
+		 
+		 The solver function, \texttt{solve\_wave\_equation}, is called with a combined user action that captures the results for the HTML animation and saves images for GIF generation.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	# Run the Solver
+		 	solve_wave_equation(
+			 	I=initial_displacement,
+			 	V=initial_velocity,
+			 	f=source_term,
+			 	c=c,
+			 	L=L,
+			 	dt=dt,
+			 	C=C,
+			 	T=T,
+			 	user_action=combined_user_action,
+			 	version="scalar",  # Solver version: 'scalar', 'vectorized', or 'vectorized2'
+			 	boundary='Dirichlet'
+			 	)
+		 \end{lstlisting}
+		 
+		 After the simulation completes, we generate a GIF and HTML animation to visualize the wave propagation, highlighting the differences between the numerical and exact solutions.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	# Generate a GIF from the saved images
+		 	generate_gif_from_images(image_folder=save_dir, gif_name='wave_comparison_animation.gif', duration=0.1)
+		 \end{lstlisting}
+		 
+		 ---
+		 
+		 This section demonstrates the implementation of a wave equation solver with exact solution comparison, showcasing error analysis techniques and visualization of standing waves in a one-dimensional domain.
+	 
+	 	 \subsection{Link to Code, Simulation Results, and Theory/Experiments}
+	 	 
+	 	  	 
+	 	 \paragraph{Code Link:}
+	 	 \begin{quote}
+	 	 	\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/blob/main/Part_2_WaveEquation/Example_Codes/standing_wave_error.py}{Standing Wave Problem and Error Evaluation}
+	 	 \end{quote}
+	 	 
+	 	 \paragraph{Animation Link:}
+	 	 \begin{quote}
+	 	 	\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/tree/main/Part_2_WaveEquation/Animations_postProcessing/standing_wave_Error}{Animations Standing Wave Problem and Error Evaluationy}
+	 	 \end{quote}
+	 	 
+	 	 \paragraph{Theory Link:}
+	 	 \begin{quote}
+	 	 	\href{https://www.acs.psu.edu/drussell/Demos/StandingWaves/StandingWaves.html}{Standing Sound Waves (Longitudinal Standing Waves)}
+	 	 \end{quote}
+	 
+	 \section{Exercise: Simulating Gaussian Wave Propagation}
+	 
+		 In this exercise, we use the developed wave equation solver to simulate the propagation of a Gaussian wave packet along a 1D domain. Gaussian wave packets are commonly used to model localized wave disturbances and are useful in understanding wave dispersion, reflection, and stability in numerical simulations. 
+		 
+		 \subsection{Setting Up the Problem}
+		 
+		 The Gaussian wave packet is initially centered at a specific point on the domain with a specified standard deviation, controlling the width of the packet. The wave packet propagates according to the 1D wave equation, without an external source term.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	L = 10.0             # Length of the domain
+		 	c = 10               # Wave speed
+		 	sigma = 0.5          # Standard deviation for Gaussian initial condition
+		 	Nx = 50              # Number of spatial points for resolution
+		 	C = 1                # Courant number
+		 	T = 3                # Total simulation time
+		 	loc = 5              # Location of Gaussian peak
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item \( L = 10.0 \): Length of the domain.
+		 	\item \( c = 10 \): Wave speed, controlling the rate at which the wave propagates.
+		 	\item \texttt{sigma} \( = 0.5 \): Standard deviation of the Gaussian, defining the packet's width.
+		 	\item \texttt{Nx} \( = 50 \): Number of spatial points, controlling the spatial resolution.
+		 	\item \texttt{C} \( = 1 \): Courant number, which governs stability and ensures accuracy in the numerical solution.
+		 	\item \texttt{T} \( = 3 \): Total simulation time, which allows us to observe the full propagation of the wave packet.
+		 	\item \texttt{loc} \( = 5 \): Initial location of the Gaussian peak, set to the center of the domain.
+		 \end{itemize}
+		 
+		 \subsubsection{Derived Parameters}
+		 
+		 The spatial and temporal step sizes are calculated to satisfy the Courant condition, which is essential for stability.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	dx = L / Nx          # Spatial step size
+		 	dt = C * dx / c      # Time step size
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item \( dx = \frac{L}{N_x} \): Spatial step size, calculated based on the length of the domain and the number of spatial points.
+		 	\item \( dt = \frac{C \cdot dx}{c} \): Time step size, adjusted to satisfy the Courant condition.
+		 \end{itemize}
+		 
+		 \subsection{Defining Problem-Specific Functions}
+		 
+		 The initial displacement is defined as a Gaussian function centered at \texttt{loc}, with zero initial velocity and no external force (source term).
+		 
+		 \begin{lstlisting}[language=Python]
+		 	def initial_displacement(x):
+		 		return (1 / np.sqrt(2 * np.pi * sigma)) * np.exp(-0.5 * ((x - loc) / sigma) ** 2)
+		 	
+		 	def initial_velocity(x):
+		 		return np.zeros_like(x)
+		 	
+		 	def source_term(x, t):
+		 		return np.zeros_like(x)
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item \texttt{initial\_displacement(x)}: Defines the initial Gaussian profile of the wave packet, with the peak centered at \texttt{loc} and width controlled by \texttt{sigma}. Mathematically, this is given by:
+		 	\[
+		 	u(x, 0) = \frac{1}{\sqrt{2 \pi \sigma}} \exp\left(-\frac{(x - \text{loc})^2}{2 \sigma^2}\right).
+		 	\]
+		 	\item \texttt{initial\_velocity(x)}: Defines the initial velocity as zero, meaning the wave starts from rest.
+		 	\item \texttt{source\_term(x, t)}: The source term \( f(x, t) = 0 \), indicating that there is no external forcing in the wave equation for this problem.
+		 \end{itemize}
+		 
+		 \subsection{Setting Up Directory for Saving Results and Defining Callback Functions}
+		 
+		 The directory for saving images is specified, and callback functions are defined for capturing results for HTML animation and saving wave images for a GIF animation.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	save_dir = 'path/to/gaussian_wave_images'
+		 	
+		 	results = []
+		 	
+		 	def capture_results(u, x, t, n):
+		 		results.append((u.copy(), t[n]))
+		 	
+		 	def save_wave_image(u, x, t, n, C, save_dir='wave_images', ymin=-0.6, ymax=0.7):
+			 	if not os.path.exists(save_dir):
+			 		os.makedirs(save_dir)
+		 	
+		 	plt.figure(figsize=(8, 4))
+		 	plt.plot(x, u, label=f"Numerical Solution (t = {t[n]:.3f})", color="blue")
+		 	plt.ylim(ymin, ymax)
+		 	plt.xlim(0, L)
+		 	plt.xlabel('x')
+		 	plt.ylabel('u(x,t)')
+		 	plt.title(f"Gaussian Wave Propagation at t = {t[n]:.3f}, Courant number = {C}")
+		 	plt.legend()
+		 	plt.grid(True)
+		 	filename = os.path.join(save_dir, f'gaussian_step_{n:04d}.png')
+		 	plt.savefig(filename)
+		 	plt.close()
+		 	
+		 	def combined_user_action(u, x, t, n):
+			 	capture_results(u, x, t, n)
+			 	save_wave_image(u, x, t, n, C, save_dir=save_dir, ymin=-0.6, ymax=0.7)
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item \texttt{capture\_results}: Saves the wave data at each time step for use in an HTML animation.
+		 	\item \texttt{save\_wave\_image}: Generates and saves images of the wave at each time step for later compilation into a GIF. The y-axis is set to capture the amplitude of the Gaussian wave packet.
+		 	\item \texttt{combined\_user\_action}: Combines both functions above into a single callback function that both stores the wave data and saves images.
+		 \end{itemize}
+		 
+		 \subsection{Running the Simulation and Generating Output}
+		 
+		 The wave equation solver is run with the specified parameters and initial conditions, using the combined user action to store and save results.
+		 
+		 \begin{lstlisting}[language=Python]
+		 	solve_wave_equation(
+		 	I=initial_displacement,
+		 	V=initial_velocity,
+		 	f=source_term,
+		 	c=c,
+		 	L=L,
+		 	dt=dt,
+		 	C=C,
+		 	T=T,
+		 	user_action=combined_user_action,
+		 	version='scalar',  # Choose solver version: 'scalar', 'vectorized', or 'vectorized2'
+		 	boundary='Neumann'  # Use Dirichlet or Neumann boundaries
+		 	)
+		 	
+		 	generate_gif_from_images(image_folder=save_dir, gif_name='gaussian_wave_animation.gif', duration=0.1)
+		 	
+		 	x = np.linspace(0, L, Nx + 1)
+		 	generate_html_animation(x, results, save_dir, filename="gaussian_wave_animation.html")
+		 \end{lstlisting}
+		 
+		 \begin{itemize}
+		 	\item The wave equation solver runs with the Gaussian initial displacement and zero initial velocity, capturing the wave’s evolution over time.
+		 	\item A GIF is generated from the saved images using \texttt{generate\_gif\_from\_images}, providing a visual animation of the wave packet’s propagation.
+		 	\item An HTML animation is created using \texttt{generate\_html\_animation}, allowing for an interactive visualization in a web browser.
+		 \end{itemize}
+		 
+		 \subsection{Summary of the Gaussian Wave Packet Exercise}
+		 
+		 This exercise illustrates the propagation of a Gaussian wave packet in a one-dimensional domain. By analyzing the wave’s evolution, we can observe the effects of reflection, wave speed, and Courant number on wave behavior. Gaussian wave packets are valuable for exploring localized wave phenomena and understanding the stability and accuracy of the numerical scheme.
+	
+		\subsection{Link to Code, Simulation Results, and Theory/Experiments}
+		
+		
+		\paragraph{Code Link:}
+		\begin{quote}
+			\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/blob/main/Part_2_WaveEquation/Example_Codes/Gaussian.py}{Gaussian Wave Problem and Wave Superposition}
+		\end{quote}
+		
+		\paragraph{Animation Link:}
+		\begin{quote}
+			\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/tree/main/Part_2_WaveEquation/Animations_postProcessing/gaussian_wave_all_BC}{Animations Gaussian Wave propagation and its superposition upon reflecting of BC - different BC examples}
+		\end{quote}
+		
+		\paragraph{Theory Link:}
+		\begin{quote}
+			\href{https://www.acs.psu.edu/drussell/Demos/superposition/superposition.html}{Superposition of Waves)}
+		\end{quote}
+	
+	
+		\section{Exercise: Simulating Wave Propagation with a Moving Left Boundary}
+		
+			This exercise simulates wave propagation in a one-dimensional domain, with a sinusoidal oscillation applied to the left boundary. This oscillating boundary condition acts as a source, initiating wave propagation through the domain. Such simulations can model scenarios where an external force or oscillation is applied at the edge of a medium.
+			
+			\subsection{Setting Up the Problem}
+			
+			The simulation is configured to apply a time-dependent sinusoidal displacement on the left boundary. By introducing an oscillating boundary, we can observe how waves propagate and reflect within the domain. The initial displacement and velocity are set to zero, so the wave motion is generated solely by the boundary condition.
+			
+			\begin{lstlisting}[language=Python]
+				L = 1.0             # Length of the domain
+				c = 1.0             # Wave speed
+				Nx = 50             # Number of spatial points for resolution
+				C = 0.5             # Courant number for stability
+				T = 2.0             # Total simulation time
+				dt = C * (L / Nx) / c  # Time step size based on the wave speed and Courant number
+				save_dir = 'path/to/moving_wave'   # Directory to save images
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \( L = 1.0 \): Length of the domain.
+				\item \( c = 1.0 \): Wave speed, determining the propagation speed through the domain.
+				\item \( N_x = 50 \): Number of spatial points, defining the spatial resolution.
+				\item \( C = 0.5 \): Courant number for stability.
+				\item \( T = 2.0 \): Total simulation time, chosen to capture multiple oscillations.
+				\item \( dt = \frac{C \cdot (L / N_x)}{c} \): Time step size, calculated to meet the Courant condition.
+			\end{itemize}
+			
+			\subsection{Defining the Moving Left Boundary Condition}
+			
+			The boundary condition at the left edge of the domain, \( x = 0 \), is designed to introduce a time-dependent oscillation. This oscillation can simulate various physical conditions, such as a wave entering the domain intermittently. Two versions of the boundary condition function, \texttt{U\_0(t)}, are provided below, allowing for different types of oscillatory input.
+			
+			\subsubsection{Option 1: Specified Oscillation Intervals}
+			
+			In this version, the left boundary undergoes sinusoidal oscillations at specific intervals. The function \texttt{U\_0(t)} returns an oscillatory value with amplitude 0.25 and frequency \(6 \pi\) during three specified time periods.
+			
+			\begin{lstlisting}[language=Python]
+				def U_0(t):
+					return 0.25 * np.sin(6 * np.pi * t) if ((t < 1./6) or (0.5 + 3./12 <= t <= 0.5 + 4./12) or (1.5 <= t <= 1.5 + 1./3)) else 0
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \texttt{U\_0(t)}: Produces sinusoidal oscillations with an amplitude of 0.25 and frequency \(6 \pi\) during the following time intervals:
+				\begin{itemize}
+					\item \( t < \frac{1}{6} \): Initial oscillation phase.
+					\item \( 0.5 + \frac{3}{12} \leq t \leq 0.5 + \frac{4}{12} \): Midway oscillation phase.
+					\item \( 1.5 \leq t \leq 1.5 + \frac{1}{3} \): Final oscillation phase.
+				\end{itemize}
+				Outside these intervals, the left boundary remains stationary.
+			\end{itemize}
+			
+			\subsubsection{Option 2: Periodic Pulses with Pulse Duration}
+			
+			The second option for defining the boundary condition applies a periodic pulse at the left boundary, triggered at regular intervals. In this approach, a sinusoidal pulse is emitted every \texttt{pulse\_period} seconds, active only for a duration of \texttt{pulse\_duration} within each period.
+			
+			\begin{lstlisting}[language=Python]
+				def U_0(t):
+					"""
+					Boundary condition at x=0, generating a sinusoidal pulse at regular intervals.
+					Only active for `pulse_duration` within each `pulse_period`.
+					"""
+					# Periodicity of pulses at the left boundary
+					pulse_period = 2.0
+					# Duration of each pulse within the period
+					pulse_duration = 0.15
+					pulse_time = t % pulse_period
+					return 0.25 * np.sin(6 * np.pi * pulse_time) if pulse_time <= pulse_duration else 0
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \texttt{U\_0(t)}: Produces a sinusoidal oscillation with amplitude 0.25 and frequency \(6 \pi\) during each pulse duration:
+				\begin{itemize}
+					\item \texttt{pulse\_period} defines the interval at which a pulse is triggered, set here to 2 seconds.
+					\item \texttt{pulse\_duration} controls how long each pulse lasts within the interval, set here to 0.15 seconds.
+				\end{itemize}
+				During each pulse duration, a sinusoidal wave is emitted at the boundary; otherwise, the boundary remains stationary.
+			\end{itemize}
+			
+			Each boundary condition option provides a different wave input behavior, allowing for flexibility in simulating various wave interactions within the domain. 
+			
+			
+			\subsection{Defining Initial Conditions}
+			
+			The initial conditions are set to zero displacement and velocity, meaning that the wave propagation is entirely driven by the boundary condition.
+			
+			\begin{lstlisting}[language=Python]
+				def initial_displacement(x):
+					return np.zeros_like(x)
+				
+				def initial_velocity(x):
+					return np.zeros_like(x)
+				
+				def source_term(x, t):
+					return np.zeros_like(x)
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \texttt{initial\_displacement(x)}: Sets the initial displacement to zero.
+				\item \texttt{initial\_velocity(x)}: Sets the initial velocity to zero, implying no initial motion.
+				\item \texttt{source\_term(x, t)}: No external forcing is applied, so \( f(x, t) = 0 \).
+			\end{itemize}
+			
+			\subsection{Setting Up Data Capture and Visualization}
+			
+			The results are stored at each time step for animation purposes. The \texttt{combined\_user\_action} function calls both \texttt{capture\_results} and \texttt{save\_wave\_image} to store data and images for visualization.
+			
+			\begin{lstlisting}[language=Python]
+				results = []
+				
+				def capture_results(u, x, t, n):
+					results.append((u.copy(), t[n]))
+				
+				def save_wave_image(u, x, t, n, save_dir='wave_images', ymin=-0.6, ymax=0.7):
+					if not os.path.exists(save_dir):
+						os.makedirs(save_dir)
+				
+				plt.figure(figsize=(8, 4))
+				plt.plot(x, u, label=f"Numerical Solution (t = {t[n]:.3f})", color="blue")
+				plt.ylim(ymin, ymax)
+				plt.xlim(0, L)
+				plt.xlabel('x')
+				plt.ylabel('u(x,t)')
+				plt.title(f"Wave Propagation at t = {t[n]:.3f}, Courant number = {C}")
+				plt.legend()
+				plt.grid(True)
+				filename = os.path.join(save_dir, f'wave_step_{n:04d}.png')
+				plt.savefig(filename)
+				plt.close()
+				
+				def combined_user_action(u, x, t, n):
+					capture_results(u, x, t, n)
+					save_wave_image(u, x, t, n, save_dir=save_dir, ymin=-0.6, ymax=0.7)
+			\end{lstlisting}
+			
+			\subsection{Modifying the Solver for the Moving Boundary Condition}
+			
+			To incorporate an oscillating boundary condition at the left edge of the domain, a wrapper function, \texttt{solve\_wave\_equation\_with\_moving\_left\_boundary}, is introduced. This function modifies the standard wave equation solver by applying a specified time-dependent boundary condition to the left boundary. The primary role of this wrapper is to ensure that the oscillating condition is applied at each time step before the solver computes the wave field for that step.
+			
+			\subsubsection{Function Overview and Code Explanation}
+			
+			The function \texttt{solve\_wave\_equation\_with\_moving\_left\_boundary} sets up the solver parameters and wraps the standard solver’s \texttt{user\_action} function. The wrapper function handles three primary tasks:
+			\begin{enumerate}
+				\item Setting up the time and spatial grids based on the input parameters.
+				\item Defining a modified user action function, \texttt{wrapped\_user\_action}, to apply the moving boundary condition.
+				\item Calling the standard \texttt{solve\_wave\_equation} function with the wrapped user action function.
+			\end{enumerate}
+			
+			The following code shows the structure of this wrapper function:
+			
+			\begin{lstlisting}[language=Python]
+				def solve_wave_equation_with_moving_left_boundary(
+				I, V, f, c, L, dt, C, T, U_0, user_action=None, version='scalar', boundary='Dirichlet'
+				):
+					# Calculate the number of time steps based on total time and time step size
+					Nt = int(round(T / dt))
+					
+					# Create an array of time points from 0 to T, with Nt+1 elements
+					t = np.linspace(0, Nt * dt, Nt + 1)
+					
+					# Define spatial step size based on domain length and spatial resolution
+					dx = L / Nx
+					
+					# Create an array of spatial points from 0 to L, with Nx+1 elements
+					x = np.linspace(0, L, Nx + 1)
+					
+					# Define a modified user action function that applies the moving left boundary condition
+					def wrapped_user_action(u, x, t, n):
+						# Set the left boundary value according to the oscillating boundary function U_0 at time step n
+						u[0] = U_0(t[n])
+					
+						# If a user-defined action is provided, call it after applying the boundary condition
+						if user_action:
+							user_action(u, x, t, n)
+					
+					# Call the wave equation solver, passing in the wrapped user action
+					solve_wave_equation(
+						I=I,                # Initial displacement function
+						V=V,                # Initial velocity function
+						f=f,                # Source term function
+						c=c,                # Wave speed
+						L=L,                # Length of the spatial domain
+						dt=dt,              # Time step size
+						C=C,                # Courant number for stability
+						T=T,                # Total simulation time
+						user_action=wrapped_user_action,  # Use the modified action to apply boundary condition
+						version=version,    # Solver version ('scalar', 'vectorized', etc.)
+						boundary=boundary   # Boundary type ('Dirichlet', 'Neumann', etc.)
+						)
+			\end{lstlisting}
+			
+			
+			\subsubsection{Step-by-Step Explanation}
+			
+			\paragraph{1. Defining Time and Spatial Grids} 
+			The wrapper function first computes the total number of time steps, \texttt{Nt}, based on the total simulation time, \( T \), and the time step size, \( \Delta t \):
+			\[
+			\texttt{Nt} = \texttt{int(round(T / dt))}
+			\]
+			Then, a time array \texttt{t} is created, which contains all the time points from \( t = 0 \) to \( t = T \). The spatial grid \texttt{x} is similarly defined, creating points from \( x = 0 \) to \( x = L \), with \texttt{Nx + 1} points based on the domain length and spatial resolution.
+			
+			\paragraph{2. Applying the Oscillating Boundary Condition: The Wrapped User Action Function}
+			
+			The core functionality for handling the moving boundary condition is implemented in the \texttt{wrapped\_user\_action} function. This function modifies the value at the left boundary, \texttt{u[0]}, according to the oscillating condition given by the \texttt{U\_0} function:
+			\[
+			u[0] = U_0(t[n])
+			\]
+			Here, \texttt{U\_0(t[n])} evaluates the boundary function at the current time step \( n \). This value is assigned to the left boundary of the solution array \texttt{u}, effectively setting the boundary condition at each time step before proceeding with the rest of the computations.
+			
+			By defining \texttt{wrapped\_user\_action} this way, we ensure that the boundary condition is applied at every time step before any other user-defined actions (such as capturing or visualizing results) are executed. If an additional \texttt{user\_action} function is provided as an argument, \texttt{wrapped\_user\_action} calls it after applying the boundary condition, allowing for data storage or visualization as required.
+			
+			\paragraph{3. Calling the Standard Solver}
+			
+			The wrapper then calls the standard \texttt{solve\_wave\_equation} function, passing the wrapped user action function, along with other input parameters:
+			\begin{lstlisting}[language=Python]
+				solve_wave_equation(
+				I=I,                # Initial displacement function
+				V=V,                # Initial velocity function
+				f=f,                # Source term function
+				c=c,                # Wave speed
+				L=L,                # Length of the spatial domain
+				dt=dt,              # Time step size
+				C=C,                # Courant number for stability
+				T=T,                # Total simulation time
+				user_action=wrapped_user_action,  # Use the modified action to apply boundary condition
+				version=version,    # Solver version ('scalar', 'vectorized', etc.)
+				boundary=boundary   # Boundary type ('Dirichlet', 'Neumann', etc.)
+				)
+			\end{lstlisting}
+			This setup allows the \texttt{solve\_wave\_equation} function to handle the wave propagation while incorporating the oscillating boundary condition. By using \texttt{wrapped\_user\_action}, the solver consistently applies the specified left boundary condition during each time step.
+			
+			\paragraph{Summary of Key Components} 
+			
+			\begin{itemize}
+				\item \texttt{solve\_wave\_equation\_with\_moving\_left\_boundary}: A wrapper function that incorporates an oscillating left boundary condition by setting \( u[0] = U_0(t[n]) \) at each time step \( n \).
+				\item \texttt{wrapped\_user\_action}: A modified user action function that ensures the oscillating boundary condition is applied before any additional actions (e.g., data capture or visualization) are executed.
+			\end{itemize}
+			This approach allows for flexible handling of dynamic boundary conditions, making it useful for simulating scenarios such as oscillating boundaries or driven oscillations in physical systems.
+			
+			
+			\subsection{Running the Simulation and Generating Output}
+			
+			The wave equation solver is run with the sinusoidal left boundary condition, and animations are generated to visualize the wave propagation.
+			
+			\begin{lstlisting}[language=Python]
+				solve_wave_equation_with_moving_left_boundary(
+					I=initial_displacement,
+					V=initial_velocity,
+					f=source_term,
+					c=c,
+					L=L,
+					dt=dt,
+					C=C,
+					T=T,
+					U_0=U_0,
+					user_action=combined_user_action,
+					version='scalar',
+					boundary= 'leftFree'
+					)
+				
+				generate_gif_from_images(image_folder=save_dir, gif_name='wave_with_moving_boundary.gif', duration=0.1)
+				
+				x = np.linspace(0, L, Nx + 1)
+				generate_html_animation(x, results, save_dir, filename="wave_with_moving_boundary.html", ymin=-0.6, ymax=0.7)
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item The solver executes with the moving boundary condition, simulating wave propagation initiated by the oscillating boundary.
+				\item \texttt{generate\_gif\_from\_images} creates a GIF of the wave propagation.
+				\item \texttt{generate\_html\_animation} generates an HTML animation for interactive viewing.
+			\end{itemize}
+			
+			\subsection{Summary of the Moving Boundary Condition Exercise}
+			
+			This exercise demonstrates wave propagation with an oscillating boundary, simulating the effect of an external force applied at one end. This setup is useful for modeling waves in scenarios such as vibrating boundaries or driven oscillations, where the boundary condition itself acts as a wave source. The resulting visualizations show the influence of the moving boundary on wave generation and propagation throughout the domain.
+	
+			\subsection{Link to Code, Simulation Results, and Theory/Experiments}
+			
+			
+			\paragraph{Code Link:}
+			\begin{quote}
+				\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/blob/main/Part_2_WaveEquation/Example_Codes/moving_wave.py}{Moving Wave Problem}
+			\end{quote}
+			
+			\paragraph{Animation Link:}
+			\begin{quote}
+				\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/tree/main/Part_2_WaveEquation/Animations_postProcessing/moving_wave}{Animations of Moving Wave Problem}
+			\end{quote}
+			
+			\paragraph{Theory Link:}
+			\begin{quote}
+				\href{https://www.acs.psu.edu/drussell/demos/reflect/reflect.html}{Reflection of Waves from Boundaries}
+			\end{quote}
+	
+			
+	\section{Solver for the Wave Equation with Variable Wave Velocity}
+	
+		In many real-world scenarios, wave speed is not constant throughout the medium; it may vary due to changes in material properties or environmental conditions. The \texttt{solve\_wave\_equation\_variable\_velocity} function is designed to handle such cases, where the wave speed \( c(x) \) changes spatially. This solver accounts for these variations in wave speed, represented as:
+		\[
+		q(x) = c(x)^2,
+		\]
+		which directly influences the wave propagation and reflections within the domain. The equation governing this model is:
+		\[
+		u_{tt} = (q(x) u_x)_x + f(x, t),
+		\]
+		where \( u(x, t) \) is the displacement field and \( f(x, t) \) is an optional source term that can represent external forces or disturbances.
+		
+		This function implements finite difference methods to approximate the solution, allowing for both Dirichlet and Neumann boundary conditions. The inclusion of an optional \texttt{user\_action} parameter provides flexibility to incorporate custom post-processing, such as visualization or data collection.
+		
+		The solver’s ability to handle spatially varying wave speeds and custom boundary conditions makes it highly adaptable for simulations.
+		
+		\subsection{Function Header and Code}
+		
+		\begin{lstlisting}[language=Python]
+			def solve_wave_equation_variable_velocity(I, V, f, q, L, dt, C, T, user_action=None, version='scalar', save_dir=None, boundary='Dirichlet'):
+			"""
+			Solve u_tt = (q(x) * u_x)_x + f with variable wave velocity q(x) = c(x)^2.
+			
+			Parameters:
+			- I: Initial displacement function.
+			- V: Initial velocity function.
+			- f: Source term function.
+			- q: Spatially varying wave speed squared (q(x) = c(x)^2).
+			- L: Domain length.
+			- dt: Time step size.
+			- C: Courant number.
+			- T: Total simulation time.
+			- user_action: Optional function for post-processing at each time step.
+			- version: Solver version ('scalar' or other optimized options).
+			- save_dir: Directory to save output files.
+			- boundary: Boundary condition type ('Dirichlet' or 'Neumann').
+			
+			Returns:
+			- u, x, t arrays for the final solution and computational grid.
+			"""
+		\end{lstlisting}
+		
+		\subsubsection{Parameters}
+		
+		\begin{itemize}
+			\item \texttt{I}: Initial displacement function \( I(x) = u(x, 0) \), which defines the starting shape of the wave at \( t = 0 \).
+			\item \texttt{V}: Initial velocity function \( V(x) = u_t(x, 0) \), which determines the initial rate of change of the wave at \( t = 0 \).
+			\item \texttt{f}: Source term function \( f(x, t) \), an external force applied to the wave at each point \( x \) and time \( t \). Setting \( f(x, t) = 0 \) simulates a free wave with no external influence.
+			\item \texttt{q}: Array representing the spatially varying wave speed squared \( q(x) = c(x)^2 \), where \( c(x) \) is the local wave speed at each point in the domain. The variable wave speed introduces inhomogeneity in the medium, affecting wave propagation.
+			\item \texttt{L}: Length of the spatial domain, defining the interval \( x \in [0, L] \).
+			\item \texttt{dt}: Time step size \( \Delta t \), which, together with the spatial resolution, controls the accuracy and stability of the simulation.
+			\item \texttt{C}: Courant number \( C = \frac{c \Delta t}{\Delta x} \), a stability factor in numerical wave propagation. It is crucial to set \( C \leq 1 \) to ensure stability in explicit finite difference schemes.
+			\item \texttt{T}: Total simulation time, determining the duration for which the solver computes the wave propagation.
+			\item \texttt{user\_action}: Optional callback function that executes additional actions at each time step. This is often used for visualization, data collection, or custom analysis. If not specified, the solver runs without additional output at each step.
+			\item \texttt{version}: Specifies the solver version, with options such as \texttt{'scalar'} for basic implementations or other optimized options for enhanced performance.
+			\item \texttt{save\_dir}: Directory path for saving any output files, such as images or data logs, if the user action includes file-saving operations.
+			\item \texttt{boundary}: Boundary condition type, with options \texttt{'Dirichlet'} (fixed boundary) or \texttt{'Neumann'} (zero-gradient boundary) for controlling wave behavior at the domain edges.
+		\end{itemize}
+		
+		In the subsequent sections, we delve into each stage of the function, including initialization of solution arrays, application of boundary conditions, and the main time-stepping loop.
+		
+		
+		\subsection{Initialization of the Solution Arrays}
+		
+			In this solver, three arrays are initialized to store the solution at different time levels:
+			\[
+			u, \quad u_1, \quad \text{and} \quad u_2.
+			\]
+			Each array has a length equal to the number of spatial points in the domain, ensuring consistent indexing and alignment with the spatial grid defined by \( q \). The purpose of each array is as follows:
+			\begin{itemize}
+				\item \( u \): Stores the solution at the \textbf{current time step}.
+				\item \( u_1 \): Stores the solution at the \textbf{previous time step}.
+				\item \( u_2 \): Stores the solution at \textbf{two steps prior}.
+			\end{itemize}
+			
+			This setup enables the solver to implement a time-stepping scheme where the solution at each new time level depends on values from the previous two levels, providing stability and accuracy in the wave equation calculation.
+			
+			\subsubsection{Code Implementation for Initialization}
+			
+			The initialization of these arrays is implemented as follows:
+			
+			\begin{lstlisting}[language=Python]
+				# Initialize solution arrays
+				u = np.zeros(len(q))    # Solution array for the current time step
+				u_1 = np.zeros(len(q))  # Solution array for the previous time step
+				u_2 = np.zeros(len(q))  # Solution array for two time steps prior
+			\end{lstlisting}
+			
+			\paragraph{Explanation of the Code}
+			
+			\begin{itemize}
+				\item \texttt{u = np.zeros(len(q))}: Creates an array \texttt{u} filled with zeros, with a length matching the number of spatial points defined by \texttt{q}. This array will hold the solution values at each spatial point for the current time step.
+				
+				\item \texttt{u\_1 = np.zeros(len(q))}: Creates a second array \texttt{u\_1} to store the solution at the previous time step, initialized to zero initially. This array will be updated after each time step to hold the most recent solution values, allowing it to serve as the previous time step in the time-stepping scheme.
+				
+				\item \texttt{u\_2 = np.zeros(len(q))}: A third array \texttt{u\_2} is created to store the solution two time steps prior. Like \texttt{u\_1}, it is initialized with zeros and updated at each time step, ensuring that the solver has access to values from two previous time levels.
+			\end{itemize}
+			
+			\subsubsection{Role of Each Array in the Time-Stepping Scheme}
+			
+			In the finite difference method for wave equations, the solution at each spatial point and current time step, \( u[i] \), depends on values from the previous two time steps (\( u_1 \) and \( u_2 \)). This time-stepping scheme is represented mathematically as:
+			\[
+			u[i] = 2 u_1[i] - u_2[i] + \Delta t^2 \left( \frac{q_{i+1/2} (u_1[i+1] - u_1[i]) - q_{i-1/2} (u_1[i] - u_1[i-1])}{\Delta x^2} + f(x[i], t) \right).
+			\]
+			After each time step, the arrays are updated:
+			\[
+			u_2[:] = u_1, \quad u_1[:] = u.
+			\]
+			This array switching ensures that \( u_1 \) and \( u_2 \) hold the values from the previous two time levels, preparing them for the next iteration.
+			
+			\subsubsection{Benefits of This Initialization}
+			
+			\begin{itemize}
+				\item \textbf{Efficiency}: By reusing these arrays at each time step, memory usage is minimized, as only three arrays are needed, regardless of the number of time steps.
+				\item \textbf{Consistency}: Initializing each array to zero provides a stable starting point and avoids potential errors from undefined values, particularly if initial conditions do not set all elements explicitly.
+			\end{itemize}
+			
+			In summary, the initialization of these solution arrays allows for efficient and accurate propagation of the wave equation over time, using a stable and consistent data structure.
+		
+		
+		\subsection{Implementation of the First Time Step}
+		
+		The first time step in the solver is treated separately to incorporate the initial conditions for both displacement and velocity. Specifically, the initial conditions are given as:
+		\[
+		u(x, 0) = I(x) \quad \text{and} \quad u_t(x, 0) = V(x),
+		\]
+		where \( I(x) \) defines the initial displacement profile of the wave, and \( V(x) \) specifies the initial velocity at each spatial point \( x \) in the domain. The goal for the first time step is to calculate the updated displacement values \( u[i] \) at each spatial point \( i \) based on these initial conditions.
+		
+		\subsubsection{Mathematical Update Formula}
+		
+		To update the displacement \( u \) for each spatial point \( i \) at the first time step, we use the following formula:
+		\[
+		u_i = u_1[i] + \Delta t \cdot V(x_i) + \frac{\Delta t^2}{2} \left( \frac{q_{i+1/2} (u_1[i+1] - u_1[i])}{\Delta x^2} - \frac{q_{i-1/2} (u_1[i] - u_1[i-1])}{\Delta x^2} \right) + \frac{\Delta t^2}{2} f(x_i, t_0),
+		\]
+		where:
+		- \( \Delta t \) is the time step size,
+		- \( V(x_i) \) is the initial velocity at \( x_i \),
+		- \( f(x_i, t_0) \) is the source term at the initial time \( t = 0 \),
+		- \( q_{i+1/2} \) and \( q_{i-1/2} \) are averaged values of \( q(x) = c(x)^2 \) between neighboring points, defined as:
+		\[
+		q_{i+1/2} = \frac{q[i] + q[i+1]}{2}, \quad q_{i-1/2} = \frac{q[i] + q[i-1]}{2}.
+		\]
+		Averaging \( q(x) \) between points \( i \) and \( i+1 \) reduces artificial amplification and improves numerical stability by smoothing transitions in wave speed across the grid.
+		
+		\subsubsection{Code Implementation for the First Time Step}
+		
+		\begin{lstlisting}[language=Python]
+			# First time step using initial velocity V(x) and initial displacement I(x)
+			for i in range(1, len(q) - 1):
+				avg_q_right = (q[i] + q[i + 1]) / 2  # Average q between points i and i+1
+				avg_q_left = (q[i] + q[i - 1]) / 2   # Average q between points i and i-1
+				u[i] = (u_1[i] + dt * V(x[i]) + 
+					0.5 * dt**2 * (avg_q_right * (u_1[i + 1] - u_1[i]) / dx**2 - 
+					avg_q_left * (u_1[i] - u_1[i - 1]) / dx**2) + 
+					0.5 * dt**2 * f(x[i], t[0]))
+		\end{lstlisting}
+		
+		\subsubsection{Explanation of the Code}
+		
+		1. **Averaging of \( q \) Values**: 
+		- \texttt{avg\_q\_right} and \texttt{avg\_q\_left} calculate the averaged values of \( q(x) \) between spatial points \( i \) and \( i+1 \), and \( i \) and \( i-1 \), respectively. These averages, \( q_{i+1/2} \) and \( q_{i-1/2} \), are used to control the spatial derivatives in the update formula.
+		
+		2. **Update Formula**: 
+		- The displacement \( u[i] \) at each point \( i \) is updated based on the previous displacement \( u_1[i] \), the initial velocity \( V(x[i]) \), and the source term \( f(x[i], t[0]) \).
+		- The term \texttt{0.5 * dt**2} multiplies the spatial derivatives and source term to account for the first time step in a way that includes contributions from both displacement and velocity.
+		
+		3. **Boundary Handling**: 
+		- The loop runs from \texttt{i = 1} to \texttt{i = len(q) - 2} to exclude the boundary points, where specific boundary conditions (Dirichlet or Neumann) are applied separately.
+		
+		\begin{comment}
+		
+		\subsubsection{Importance of the First Time Step Calculation}
+		
+		In the finite difference method for solving wave equations, the first time step calculation is crucial as it sets up the initial movement of the wave. Including the velocity \( V(x) \) ensures that the initial kinetic energy is represented in the wave propagation. The averaged values of \( q \) minimize oscillations in regions where wave speed changes, promoting stability and accuracy in the overall solution.
+		
+		\end{comment}
+		
+		\subsection{Time-Stepping Loop}
+		
+		The time-stepping loop is the core of the solver, iterating over each time step from \( n = 1 \) to \( N_t \), where \( N_t \) is the total number of time steps. At each time step, the solver updates the wave displacement \( u \) across the spatial domain based on values from the previous two time steps. This process continues until the entire simulation duration \( T \) is covered.
+		
+		\begin{comment}
+			
+		\paragraph{Update Rule for Each Time Step}
+		
+		For each spatial point \( i \) (excluding boundaries), the displacement \( u[i] \) at the current time step is calculated using the following update rule:
+		\[
+		u[i] = 2 u_1[i] - u_2[i] + \Delta t^2 \left( \frac{q_{i+1/2} (u_1[i+1] - u_1[i]) - q_{i-1/2} (u_1[i] - u_1[i-1])}{\Delta x^2} + f(x[i], t[n]) \right),
+		\]
+		where:
+		- \( u[i] \): Displacement at spatial point \( i \) and current time step.
+		- \( u_1[i] \): Displacement at spatial point \( i \) from the previous time step.
+		- \( u_2[i] \): Displacement at spatial point \( i \) from two time steps prior.
+		- \( \Delta t \): Time step size.
+		- \( q_{i+1/2} \) and \( q_{i-1/2} \): Averaged values of \( q(x) = c(x)^2 \), calculated between points \( i \) and \( i+1 \), and points \( i \) and \( i-1 \), respectively, as:
+		\[
+		q_{i+1/2} = \frac{q[i] + q[i+1]}{2}, \quad q_{i-1/2} = \frac{q[i] + q[i-1]}{2}.
+		\]
+		
+		This update rule relies on values from the previous two time steps, ensuring stability and accurate propagation of the wave through the domain. The averaging of \( q \) values minimizes sharp transitions in wave speed, promoting numerical stability.
+		
+		\end{comment}
+		
+		\subsubsection{Code Implementation of the Time-Stepping Loop}
+		
+		\begin{lstlisting}[language=Python]
+			# Main time-stepping loop
+			for n in range(1, Nt):
+				for i in range(1, len(q) - 1):
+					# Averaged q values to reduce artificial amplification
+					avg_q_right = (q[i] + q[i + 1]) / 2
+					avg_q_left = (q[i] + q[i - 1]) / 2
+					u[i] = (2 * u_1[i] - u_2[i] +
+						dt**2 * (avg_q_right * (u_1[i + 1] - u_1[i]) - 
+						avg_q_left * (u_1[i] - u_1[i - 1])) / dx**2 +
+						dt**2 * f(x[i], t[n]))
+		\end{lstlisting}
+		
+		\begin{comment}
+		
+		\paragraph{Explanation of the Code} 
+		
+		1. **Averaging \( q \) Values**: 
+		- \texttt{avg\_q\_right} and \texttt{avg\_q\_left} compute the averaged values of \( q \) to prevent abrupt changes in wave speed between neighboring points. These values control the effect of spatial derivatives in the update equation, improving stability.
+		
+		2. **Update Equation**: 
+		- The displacement \( u[i] \) at the current time step is computed based on values from the previous two time steps, the averaged \( q \) values, and the source term \( f(x[i], t[n]) \). Each part of the update formula corresponds to a term in the finite difference approximation of the wave equation.
+		
+		3. **Loop Boundaries**: 
+		- The loop runs from \texttt{i = 1} to \texttt{i = len(q) - 2}, excluding boundary points. Boundary conditions are applied separately to \( u[0] \) and \( u[N_x] \).
+		
+		\end{comment}
+		
+		\subsubsection{Boundary Conditions}
+		
+		The solver supports two types of boundary conditions: Dirichlet and Neumann, which affect the behavior of the wave at the edges of the domain.
+		
+		\begin{itemize}
+			\item \textbf{Dirichlet Boundary Condition}: Sets the displacement to zero at both boundaries, simulating fixed ends. This condition is implemented as:
+			\[
+			u[0] = 0 \quad \text{and} \quad u[N_x] = 0.
+			\]
+			
+			\item \textbf{Neumann Boundary Condition}: Sets a zero-gradient (free) boundary condition, allowing the displacement to vary freely at the edges. This is implemented by setting:
+			\[
+			u[0] = u[1] \quad \text{and} \quad u[N_x] = u[N_x - 1].
+			\]
+			This condition is suitable for open ends where the wave reflects with no phase change.
+		\end{itemize}
+		\newpage
+		\paragraph{Code for Boundary Conditions} 
+		:
+		\begin{lstlisting}[language=Python]
+			# Apply boundary conditions
+			if boundary == 'Dirichlet':
+				u[0] = u[-1] = 0  # Fixed displacement at both boundaries
+			elif boundary == 'Neumann':
+				u[0] = u[1]       # Zero-gradient (free) at the left boundary
+				u[-1] = u[-2]     # Zero-gradient (free) at the right boundary
+		\end{lstlisting}
+		
+		\begin{comment}
+		
+		\paragraph{Explanation of the Boundary Condition Code}
+		
+		1. **Dirichlet Condition**: 
+		- If \texttt{boundary} is set to \texttt{'Dirichlet'}, the boundary points \( u[0] \) and \( u[N_x] \) are set to zero, representing fixed ends.
+		
+		2. **Neumann Condition**:
+		- If \texttt{boundary} is set to \texttt{'Neumann'}, the values at \( u[0] \) and \( u[N_x] \) are set to equal their neighboring points (\( u[1] \) and \( u[N_x - 1] \)), implementing a free boundary condition where the gradient of \( u \) at the boundary is zero.
+			
+		
+		
+		\paragraph{Array Update After Each Time Step}
+		
+		After computing the new displacement \( u \), the arrays are updated for the next iteration:
+		\[
+		u_2[:] = u_1, \quad u_1[:] = u.
+		\]
+		This update ensures that \( u_1 \) and \( u_2 \) hold the displacement values from the previous two time steps, maintaining consistency in the time-stepping scheme.
+		
+		\subsubsection{Summary of Time-Stepping Loop}
+		
+		The time-stepping loop allows the solver to simulate the wave propagation over the specified time duration \( T \). By applying the appropriate update formula and boundary conditions at each step, the loop ensures accurate modeling of the wave dynamics across the spatial domain.
+		
+		\end{comment}
+		
+		\subsection{Updating Previous Solutions}
+		
+		In each iteration of the time-stepping loop, after computing \( u[i] \) for all spatial points \( i \), the solver updates the solution arrays to prepare for the next time step. This is achieved by shifting the values of the displacement arrays to represent the previous two time levels. The update rule is given by:
+		\[
+		u_2[:] = u_1, \quad u_1[:] = u.
+		\]
+		
+		\begin{comment}
+		
+		\paragraph{Purpose of Updating Arrays}
+		
+		In finite difference methods for solving wave equations, each time step depends on values from the previous two time levels. By updating the arrays as shown:
+		- \( u_2 \) holds the values from two time steps ago,
+		- \( u_1 \) holds the values from the previous time step, and
+		- \( u \) contains the values from the current time step.
+		
+		This organization ensures that the solver has access to the necessary time levels for calculating the next time step, maintaining consistency in the time-stepping scheme.
+			
+		\end{comment}
+		
+		\paragraph{Code Implementation}
+		:
+		\begin{lstlisting}[language=Python]
+			# Update previous solutions for the next time step
+			u_2[:] = u_1  # Shift the previous time step solution to u_2
+			u_1[:] = u    # Shift the current solution to u_1
+		\end{lstlisting}
+		
+		\paragraph{Explanation of the Code}
+		
+		1. \textbf{Assignment of Arrays}: The command \texttt{u\_2[:] = u\_1} assigns the values of \texttt{u\_1} (the previous time step solution) to \texttt{u\_2}. Similarly, \texttt{u\_1[:] = u} assigns the current solution in \texttt{u} to \texttt{u\_1}. This step ensures that the arrays \( u_1 \) and \( u_2 \) are ready for use in the next iteration of the time-stepping loop.
+		
+		
+		\subsection{Return Values}
+		
+		At the end of the simulation, the function returns:
+		\begin{itemize}
+			\item \texttt{u}: Final solution array for \( u(x, T) \).
+			\item \texttt{x} and \texttt{t}: Arrays of spatial and temporal grid points, providing the computational grid information.
+		\end{itemize}
+		
+		This solver implementation allows flexibility for simulating waves with variable speeds across a spatial domain, capturing the effects of inhomogeneities in the medium.
+		
+	
+		
+	\section{Example: Wave Propagation with Variable Velocity and Periodic Boundary Pulses}
+	
+		This example demonstrates the simulation of wave propagation in a one-dimensional domain with variable wave speed. The simulation models a domain split into two regions with distinct wave velocities, separated by an impedance boundary. Additionally, a periodic boundary pulse is applied at the left end of the domain, mimicking a recurring wave input. 
+		The principles governing wave reflection and transmission at impedance boundaries can be explored in depth through interactive demonstrations, such as those available at Penn State’s Acoustics website. For a detailed overview, refer to \href{https://www.acs.psu.edu/drussell/demos/reflect/reflect.html}{website*}.
+		
+		\subsection{Problem Setup}
+		
+		The domain length \( L = 1.0 \) is divided into 100 spatial points for adequate resolution, resulting in a spatial step size of \( \Delta x = \frac{L}{N_x} \). The simulation runs for a total time \( T = 1 \), which allows observation of multiple wave reflections across the domain. 
+		
+		\paragraph{Wave Speeds and Medium Properties} 
+		
+		The domain is split into two regions with different wave speeds and densities:
+		\begin{itemize}
+			\item **Medium 1**: From \( x = 0 \) to \( x = L/3 \), the wave speed is \( c_1 = 1 \) with a density \( \rho_1 = 1.0 \).
+			\item **Medium 2**: From \( x = L/3 \) to \( x = L \), the wave speed is \( c_2 = 0.5 \) and the density is \( \rho_2 = 4.0 \).
+		\end{itemize}
+		
+		These values create an impedance difference, resulting in partial reflection and transmission of the wave at the boundary. Reflection and transmission coefficients are calculated based on the impedance mismatch between the two media:
+		\[
+		\text{Reflection Coefficient} = \frac{Z_1 - Z_2}{Z_1 + Z_2}, \quad \text{Transmission Coefficient} = \frac{2 Z_1}{Z_1 + Z_2},
+		\]
+		where \( Z_1 = \rho_1 c_1 \) and \( Z_2 = \rho_2 c_2 \).
+		
+		\paragraph{Boundary Pulse}
+		
+		At the left boundary, a sinusoidal pulse is applied periodically with a duration of \( 0.16 \) seconds and a period of \( 2.0 \) seconds. This pulse acts as a recurring wave source, simulating continuous energy input into the domain.
+		
+		\subsection{Code Implementation}
+		
+		This section breaks down the implementation of the variable velocity wave equation solver, focusing on key components such as the initial and boundary conditions, variable wave speed, and the solution and visualization setup.
+		
+		\subsection{Problem Setup and Parameters}
+		
+		This simulation models wave propagation across a heterogeneous one-dimensional domain, where two distinct materials create an impedance boundary. The purpose of this setup is to observe wave behavior, including reflection and transmission, as it encounters a boundary with different material properties. The following parameters define the spatial resolution, material properties, and wave behavior:
+		\begin{lstlisting}[language=Python]
+		# ===============================
+		# Problem Setup and Parameters
+		# ===============================
+		# Length of the domain and the number of spatial points
+		L = 1.0                      # Total length of the domain
+		Nx = 100                      # Number of spatial points for resolution
+		
+		# Courant number, which is essential for stability in wave equations.
+		# Here, we set C = 1 for the maximum stability within homogeneous regions.
+		C = 1
+		
+		# Total simulation time, which will determine how long we observe the wave motion.
+		T = 1
+		
+		# Periodicity of pulses at the left boundary; we emit a pulse every `pulse_period` seconds.
+		pulse_period = 2.0
+		
+		# Duration of each pulse; each pulse lasts `pulse_duration` seconds.
+		pulse_duration = 0.16
+		\end{lstlisting}
+		
+		\subsubsection{Domain and Spatial Resolution}
+		
+		The length of the domain \( L = 1.0 \) is divided into \( N_x = 100 \) spatial points. This resolution ensures that the wave behavior is well-captured across the domain. The spatial step size \( \Delta x \) is calculated as:
+		\[
+		\Delta x = \frac{L}{N_x}.
+		\]
+		
+		\subsubsection{Courant Number and Stability}
+		
+		The Courant number \( C \) is set to 1, which is the maximum stability condition for homogeneous wave propagation. This value is crucial in wave simulations to ensure numerical stability and accurate wave behavior. The time step size \( \Delta t \) is then determined by:
+		\[
+		\Delta t = C \frac{\Delta x}{\max(c_1, c_2)},
+		\]
+		where \( c_1 \) and \( c_2 \) represent the wave speeds in each material.
+		
+		\subsubsection{Simulation Time and Boundary Pulse Parameters}
+		
+		The total simulation time \( T = 1 \) allows sufficient observation of the wave motion, including reflections at the impedance boundary. A periodic pulse is introduced at the left boundary:
+		\begin{itemize}
+			\item \textbf{Pulse Period} (\texttt{pulse\_period}): Each pulse is emitted every 2 seconds, simulating a recurring energy input.
+			\item \textbf{Pulse Duration} (\texttt{pulse\_duration}): Each pulse lasts 0.16 seconds, creating a short, sharp wave that travels through the domain.
+		\end{itemize}
+		
+		\subsubsection{Directory for Saving Animation Frames}
+		
+		The generated frames of the simulation are saved in the directory specified by \texttt{save\_dir}. This setup allows for easy post-processing into animations.
+		
+		\begin{lstlisting}[language=Python]
+			# Directory to save generated frames for the animation
+			save_dir = r'path/to/moving_variable_medium_wave_simulation'
+			
+			# Ensure that the directory for saving images exists
+			if not os.path.exists(save_dir):
+				os.makedirs(save_dir)
+		\end{lstlisting}
+		
+		\subsubsection{Material Properties and Wave Speeds}
+		
+		The domain is split into two media, each with different density and wave speed values:
+		\begin{itemize}
+			\item \textbf{Medium 1}: Density \( \rho_1 = 1.0 \) and wave speed \( c_1 = 1 \).
+			\item \textbf{Medium 2}: Density \( \rho_2 = 4.0 \) and wave speed \( c_2 = 0.5 \), making it eight times denser and with a slower wave speed.
+		\end{itemize}
+		
+		This density and wave speed variation creates an impedance difference at the boundary, leading to partial reflection and transmission of waves. The impedance \( Z \) for each medium is calculated as:
+		\[
+		Z_1 = \rho_1 c_1, \quad Z_2 = \rho_2 c_2.
+		\]
+		
+		\subsubsection{Reflection and Transmission Coefficients}
+		
+		The reflection and transmission coefficients quantify the portion of the wave energy that is reflected or transmitted at the impedance boundary:
+		\[
+		\text{Reflection Coefficient} = \frac{Z_1 - Z_2}{Z_1 + Z_2}, \quad \text{Transmission Coefficient} = \frac{2 Z_1}{Z_1 + Z_2}.
+		\]
+		These coefficients are calculated based on the impedance mismatch between the two media, ensuring that the simulation accurately reflects wave interactions at the boundary.
+		
+		\begin{lstlisting}[language=Python]
+			# ===============================
+			# Material Properties and Wave Speeds
+			# ===============================
+			# Density and wave speed for each medium
+			rho1 = 1.0  # Density in medium 1
+			rho2 = 4.0  # Density in medium 2, 4 times denser than medium 1
+			c1 = 1      # Wave speed in medium 1
+			c2 = 0.5    # Wave speed in medium 2, slower in denser medium
+			
+			# Derived values
+			dx = L / Nx                   # Spatial step size based on the number of points
+			dt = C * dx / max(c1, c2)     # Time step size derived from the Courant number for stability
+			Z1 = rho1 * c1                # Impedance in medium 1
+			Z2 = rho2 * c2                # Impedance in medium 2
+			
+			# Reflection and Transmission coefficients based on impedance mismatch
+			reflection_coeff = (Z1 - Z2) / (Z1 + Z2)
+			transmission_coeff = (2 * Z1) / (Z1 + Z2)
+		\end{lstlisting}
+		
+		
+		\subsubsection{Initial and Boundary Conditions}
+		
+		The initial displacement \( I(x) \) and initial velocity \( V(x) \) are set to zero, simulating a stationary start where no wave motion exists initially. The source term \( f(x, t) \) is also set to zero, meaning there is no external force within the domain. The left boundary is given a periodic pulse defined by the function \( U_0(t) \), which generates a sinusoidal pulse every 2 seconds, mimicking a recurring wave input into the domain.
+		
+		\begin{lstlisting}[language=Python]
+			# Initial displacement and velocity (both set to zero for a stationary initial state)
+			def initial_displacement(x):
+				return np.zeros_like(x)
+			
+			def initial_velocity(x):
+				return np.zeros_like(x)
+			
+			# Define a periodic pulse at the left boundary that triggers every `pulse_period`
+			def U_0(t):
+				"""
+				Boundary condition at x=0, generating a sinusoidal pulse at regular intervals.
+				Only active for `pulse_duration` within each `pulse_period`.
+				"""
+				pulse_time = t % pulse_period
+				return 0.25 * np.sin(6 * np.pi * pulse_time) if pulse_time <= pulse_duration else 0
+		\end{lstlisting}
+		
+		Here, the function \texttt{U\_0(t)} generates a sinusoidal wave at \( x = 0 \) every \texttt{pulse\_period} seconds, but only for a limited \texttt{pulse\_duration}. This ensures periodic energy input without continuous oscillation, allowing for controlled wave pulses into the domain.
+		
+		\subsubsection{Variable Wave Speed Across the Domain}
+		
+		The function \texttt{variable\_wave\_speed} defines the squared wave speed \( q(x) = c(x)^2 \) across the domain. This variable wave speed reflects the physical setup, where wave speed changes at \( x = L/3 \), representing a boundary with impedance mismatch.
+		
+		\begin{lstlisting}[language=Python]
+			def variable_wave_speed(x):
+				"""
+				Function to define q(x) = c(x)^2 across the domain.
+				The wave speed changes at x = L/3, representing an impedance discontinuity.
+				"""
+				midpoint = L / 3
+				return np.where(x < midpoint, c1**2, c2**2)
+		\end{lstlisting}
+		
+		In this implementation, the wave speed squared \( q(x) \) is set to \( c_1^2 \) for the first \( \frac{L}{3} \) of the domain and \( c_2^2 \) for the remainder. This change in \( q(x) \) causes partial reflection and transmission of the wave at the boundary, demonstrating the effect of an impedance discontinuity.
+		
+		\subsubsection{Solution and Visualization Setup}
+		
+		To capture and visualize the wave’s behavior, each time step’s solution is saved both for generating a GIF and for creating an HTML animation. This allows the observation of wave reflections, transmissions, and the impact of the periodic pulse at the boundary.
+		
+		\begin{lstlisting}[language=Python]
+			# Array to store solution data for HTML animation
+			results = []
+			
+			# Capture results at each time step for HTML animation
+			def capture_results(u, x, t, n):
+				results.append((u.copy(), t[n]))
+			
+			# Combined user action to capture results and save images for GIF creation
+			def combined_user_action(u, x, t, n):
+				capture_results(u, x, t, n)  # Capture data for HTML animation
+				save_wave_image(u, x, t, n, C, save_dir=save_dir, ymin=-0.6, ymax=0.7)  # Save image for GIF
+		\end{lstlisting}
+		
+		The \texttt{capture\_results} function appends each time step’s solution \( u \) and time \( t[n] \) to the \texttt{results} array, allowing for HTML animation generation after the simulation completes. The \texttt{combined\_user\_action} function combines this with image saving for GIF creation, providing a comprehensive visualization of the simulation.
+		
+		\subsubsection{Setting Up the Spatial Grid and Variable Wave Speed}
+		
+		To model wave propagation through a medium with varying wave speed, we define a spatial grid and compute \( q(x) = c(x)^2 \), which represents the square of the wave speed. This step ensures that the solver can accommodate spatially varying properties, allowing for more realistic simulations where waves encounter different media with distinct physical properties.
+		
+		\paragraph{Spatial Grid and Wave Speed Function}
+		
+		The spatial domain is divided into \( N_x + 1 \) points across a length \( L \), creating a grid array \( x \) with coordinates evenly spaced by \( \Delta x = L / N_x \):
+		\[
+		x = \texttt{np.linspace(0, L, Nx + 1)}.
+		\]
+		The variable wave speed \( q(x) \) is computed using the \texttt{variable\_wave\_speed} function, which applies different wave speeds in distinct regions, simulating an impedance boundary within the domain.
+		
+		\begin{lstlisting}[language=Python]
+			# Spatial grid across the domain and calculating q(x) based on wave speed
+			x = np.linspace(0, L, Nx + 1)
+			q = variable_wave_speed(x)
+		\end{lstlisting}
+		
+		\subsubsection{Solver Wrapper for Variable Velocity}
+		
+		The \texttt{solve\_wave\_equation\_with\_variable\_velocity} function is a wrapper designed to handle the wave equation with variable wave speed \( q(x) = c(x)^2 \) and to apply a periodic boundary condition \( U_0(t) \) at the left boundary. This setup is essential for simulating wave propagation in a heterogeneous medium where the wave speed changes across the spatial domain.
+		
+		\paragraph{Function Parameters}
+		:
+		
+		\begin{lstlisting}[language=Python]
+		# ===============================
+		# Solver Wrapper for Variable Velocity
+		# ===============================
+		
+		def solve_wave_equation_with_variable_velocity(I, V, f, q, L, dt, C, T, U_0, user_action=None, version='scalar', boundary='Dirichlet'):
+		"""
+		Wrapper to solve the wave equation with variable wave velocity `q(x)` and a moving boundary condition `U_0`.
+		
+		Parameters:
+		- I: Initial displacement function
+		- V: Initial velocity function
+		- f: Source term function
+		- q: Spatially varying wave speed squared (q(x) = c(x)^2)
+		- L: Length of the domain
+		- dt: Time step size
+		- C: Courant number
+		- T: Total simulation time
+		- U_0: Left boundary pulse function
+		- user_action: Action to take at each time step (e.g., save images)
+		"""
+		\end{lstlisting}
+		
+		The function accepts several parameters:
+		\begin{itemize}
+			\item \texttt{I}, \texttt{V}, and \texttt{f}: These are the initial displacement, initial velocity, and source term functions, respectively.
+			\item \texttt{q}: An array representing the squared wave speed \( q(x) = c(x)^2 \) across the spatial domain.
+			\item \texttt{L}, \texttt{dt}, \texttt{C}, and \texttt{T}: These parameters define the domain length \( L \), time step size \( \Delta t \), Courant number \( C \), and total simulation time \( T \), each critical for maintaining stability and controlling the simulation duration.
+			\item \texttt{U\_0}: A function that defines the left boundary condition, applying a pulse at periodic intervals.
+			\item \texttt{user\_action}: An optional action executed at each time step, allowing for tasks such as saving or visualizing the current solution.
+		\end{itemize}
+		
+		\paragraph{Setting Up the Time and Spatial Grid}
+		
+		The function first calculates the time grid and spatial grid required for solving the wave equation:
+		\begin{itemize}
+			\item \texttt{Nt} is the number of time steps, calculated by dividing the total simulation time \( T \) by the time step \( \Delta t \).
+			\item \texttt{t} is the time grid, created with evenly spaced points from \( t = 0 \) to \( t = T \).
+			\item \texttt{dx} is the spatial step, calculated as \( \Delta x = L / N_x \).
+			\item \texttt{x} is the spatial grid, a sequence of points from \( x = 0 \) to \( x = L \).
+		\end{itemize}
+		
+		\begin{lstlisting}[language=Python]
+			
+			Nt = int(round(T / dt))   # Number of time steps based on T and dt
+			t = np.linspace(0, Nt * dt, Nt + 1)  # Time grid
+			dx = L / Nx               # Reconfirming spatial step
+			x = np.linspace(0, L, Nx + 1)  # Spatial grid
+		\end{lstlisting}
+		
+		\paragraph{Boundary Condition with Wrapped User Action}
+		
+		The function defines a nested function, \texttt{wrapped\_user\_action}, to apply the left boundary condition at each time step. Specifically, \( u[0] = U_0(t[n]) \) is set at the beginning of each time step to simulate an oscillating pulse at the left boundary. This wrapped action applies the boundary condition before calling the main \texttt{user\_action} function, if provided.
+		
+		\begin{lstlisting}[language=Python]
+			def wrapped_user_action(u, x, t, n):
+				u[0] = U_0(t[n])  # Apply the boundary condition at each time step
+				if user_action:
+					user_action(u, x, t, n)
+		\end{lstlisting}
+		
+		\paragraph{Executing the Variable Velocity Solver}
+		
+		The last part of the wrapper function calls \texttt{solve\_wave\_equation\_variable\_velocity}, passing all the required parameters, including the boundary-modified \texttt{wrapped\_user\_action} to manage the oscillating boundary condition. The solver then runs over each time step and spatial point to compute the wave propagation across a domain with variable wave speed.
+		
+		\begin{lstlisting}[language=Python]
+			solve_wave_equation_variable_velocity(
+				I=I, V=V, f=f, q=q, L=L, dt=dt, C=C, T=T,
+				user_action=wrapped_user_action,
+				version=version,
+				boundary=boundary
+				)
+		\end{lstlisting}
+		
+		\newpage
+		\subsubsection{Execution of the Solver with Variable Velocity}
+		
+		Finally, we execute the solver with variable velocity and the defined boundary conditions. The \texttt{solve\_wave\_equation\_variable\_velocity} function is wrapped in a custom function \texttt{solve\_wave\_equation\_with\_variable\_velocity} to integrate the periodic boundary pulse at the left boundary.
+		
+		\begin{lstlisting}[language=Python]
+			# Execute the solver with variable velocity and periodic pulse at the boundary
+			solve_wave_equation_with_variable_velocity(
+				I=initial_displacement,
+				V=initial_velocity,
+				f=source_term,
+				q=q,
+				L=L,
+				dt=dt,
+				C=C,
+				T=T,
+				U_0=U_0,
+				user_action=combined_user_action,
+				version='scalar',
+				boundary='Dirichlet'
+				)
+		\end{lstlisting}
+		
+		In this call, \texttt{solve\_wave\_equation\_with\_variable\_velocity} runs the simulation, applying the periodic pulse \( U_0(t) \) at the left boundary and using the combined user action to store results and save images. The resulting animation captures how the wave propagates through the domain, reflects at the impedance boundary, and responds to the periodic pulses.
+		
+		\subsection{Link to Code, Simulation Results, and Theory/Experiments}
+		
+		
+		\paragraph{Code Link:}
+		\begin{quote}
+			\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/blob/main/Part_2_WaveEquation/Example_Codes/heterogenious_string_wave_simulation.py}{Moving Wave with Heterogenious String - Variable Velocity Problem}
+		\end{quote}
+		
+		\paragraph{Animation Link:}
+		\begin{quote}
+			\href{https://github.com/pb96git/Numerical-Solutions-for-Partial-Differential-Equations/tree/main/Part_2_WaveEquation/Animations_postProcessing/variable_velocity}{Animations of Moving Wave - Variable Velocity Problem}
+		\end{quote}
+		
+		\paragraph{Theory Link:}
+		\begin{quote}
+			\href{https://www.acs.psu.edu/drussell/demos/reflect/reflect.html}{Reflection from an impedance discontinuity}
+		\end{quote}			
+		
+
+	
+
+	
+\end{document}

@@ -1,0 +1,218 @@
+\contentsline {section}{\numberline {1}Introduction}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Finite Difference Approximation of the Wave Equation}{4}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Approximating the Temporal Derivative with Central Difference Scheme}{4}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Approximating the Spatial Derivative with Central Difference Scheme}{5}{subsubsection.1.1.2}%
+\contentsline {subsubsection}{\numberline {1.1.3}Substituting into the Wave Equation}{5}{subsubsection.1.1.3}%
+\contentsline {subsubsection}{\numberline {1.1.4}Introducing the Courant Number}{6}{subsubsection.1.1.4}%
+\contentsline {section}{\numberline {2}Understanding Time and Spatial Stepping in the Solver}{6}{section.2}%
+\contentsline {subsection}{\numberline {2.1}2D Grid for Time and Spatial Stepping}{7}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Finite Difference Update Rule}{7}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Visualization of the Stepping Process}{8}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Calculating the First Time Step}{8}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Development of Generalized Solver for 1D Wave Equations in Python}{9}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Function Definition: \texttt {solve\_wave\_equation}}{9}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Discretization of Time and Space}{10}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Initial Condition at t = 0}{10}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Calculating the First Time Step}{10}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Time-Stepping Loop for the Finite Difference Scheme}{11}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Applying Boundary Conditions at Each Time Step}{11}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}User Action for Visualization or Data Processing}{12}{subsubsection.3.5.2}%
+\contentsline {paragraph}{ How the User Action Works}{12}{paragraph*.1}%
+\contentsline {paragraph}{Example Usage of \texttt {user\_action}}{13}{paragraph*.2}%
+\contentsline {paragraph}{Summary of \texttt {user\_action} Benefits}{13}{paragraph*.3}%
+\contentsline {paragraph}{Variable Switching for the Next Time Step}{13}{paragraph*.4}%
+\contentsline {subsubsection}{\numberline {3.5.3}CPU Time Calculation and Return}{14}{subsubsection.3.5.3}%
+\contentsline {subsection}{\numberline {3.6}Vectorization}{14}{subsection.3.6}%
+\contentsline {subsubsection}{\numberline {3.6.1}Function Modifications to Support Multiple Versions}{15}{subsubsection.3.6.1}%
+\contentsline {subsubsection}{\numberline {3.6.2}Time-Stepping Loop: Scalar vs. Vectorized Implementations}{15}{subsubsection.3.6.2}%
+\contentsline {paragraph}{1. Scalar (Loop-Based) Implementation}{15}{paragraph*.5}%
+\contentsline {paragraph}{2. Vectorized Implementation}{15}{paragraph*.6}%
+\contentsline {paragraph}{3. Alternative Vectorized Implementation (Vectorized2)}{16}{paragraph*.7}%
+\contentsline {subsubsection}{\numberline {3.6.3}Boundary Conditions and Function Execution}{16}{subsubsection.3.6.3}%
+\contentsline {subsubsection}{\numberline {3.6.4}Benefits of Vectorization}{17}{subsubsection.3.6.4}%
+\contentsline {subsection}{\numberline {3.7}Boundary Conditions}{17}{subsection.3.7}%
+\contentsline {subsubsection}{\numberline {3.7.1}Function Modifications to Support Different Boundary Conditions}{17}{subsubsection.3.7.1}%
+\contentsline {subsubsection}{\numberline {3.7.2}Implemented Boundary Conditions}{17}{subsubsection.3.7.2}%
+\contentsline {paragraph}{ 1. Dirichlet Boundary Condition (Fixed Ends)}{17}{paragraph*.8}%
+\contentsline {paragraph}{2. Neumann Boundary Condition (Zero-Gradient/Free Ends)}{18}{paragraph*.9}%
+\contentsline {paragraph}{ 3. Mixed Boundary Condition (leftFree and rightFree)}{18}{paragraph*.10}%
+\contentsline {subsubsection}{\numberline {3.7.3}Applying Boundary Conditions During the Time-Stepping Loop}{19}{subsubsection.3.7.3}%
+\contentsline {subsubsection}{\numberline {3.7.4}Summary of Boundary Conditions}{19}{subsubsection.3.7.4}%
+\contentsline {section}{\numberline {4}Development of Visualization Code for Post-Processing Purposes}{20}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Function \texttt {save\_wave\_image}}{20}{subsection.4.1}%
+\contentsline {paragraph}{Function Signature}{20}{paragraph*.11}%
+\contentsline {paragraph}{Parameters:}{20}{paragraph*.12}%
+\contentsline {paragraph}{Code Explanation}{21}{paragraph*.13}%
+\contentsline {paragraph}{1. Directory Creation}{21}{paragraph*.14}%
+\contentsline {paragraph}{2. Setting Up the Plot}{21}{paragraph*.15}%
+\contentsline {paragraph}{3. Setting the Y-Axis Limits}{21}{paragraph*.16}%
+\contentsline {paragraph}{4. Setting the X-Axis Limits}{22}{paragraph*.17}%
+\contentsline {paragraph}{5. Adding the Title with Courant Number}{22}{paragraph*.18}%
+\contentsline {paragraph}{6. Enabling Grid and Adding Legend}{22}{paragraph*.19}%
+\contentsline {paragraph}{7. Defining the Filename}{22}{paragraph*.20}%
+\contentsline {paragraph}{8. Debug Message for Confirmation}{22}{paragraph*.21}%
+\contentsline {paragraph}{9. Saving and Closing the Plot}{22}{paragraph*.22}%
+\contentsline {paragraph}{Summary}{23}{paragraph*.23}%
+\contentsline {subsection}{\numberline {4.2}Function \texttt {generate\_gif\_from\_images}}{23}{subsection.4.2}%
+\contentsline {paragraph}{Function Signature}{23}{paragraph*.24}%
+\contentsline {paragraph}{Code Explanation}{23}{paragraph*.25}%
+\contentsline {paragraph}{1. Initializing the List of Images}{23}{paragraph*.26}%
+\contentsline {paragraph}{2. Retrieving and Sorting Image Files}{23}{paragraph*.27}%
+\contentsline {paragraph}{3. Handling the Case of No Images Found}{24}{paragraph*.28}%
+\contentsline {paragraph}{4. Reading and Appending Images}{24}{paragraph*.29}%
+\contentsline {paragraph}{5. Defining the Output GIF Path}{24}{paragraph*.30}%
+\contentsline {paragraph}{6. Saving the GIF}{24}{paragraph*.31}%
+\contentsline {paragraph}{7. Confirmation Message}{24}{paragraph*.32}%
+\contentsline {paragraph}{Summary}{24}{paragraph*.33}%
+\contentsline {subsection}{\numberline {4.3}Function \texttt {generate\_html\_animation}}{25}{subsection.4.3}%
+\contentsline {paragraph}{Function Signature}{25}{paragraph*.34}%
+\contentsline {paragraph}{Code Explanation}{25}{paragraph*.35}%
+\contentsline {paragraph}{1. Setting Up the Plot}{25}{paragraph*.36}%
+\contentsline {paragraph}{2. Initializing the Line Plot with \texttt {init} Function}{25}{paragraph*.37}%
+\contentsline {paragraph}{3. Defining the \texttt {animate} Function to Update Frames}{26}{paragraph*.38}%
+\contentsline {paragraph}{4. Creating the Animation with \texttt {FuncAnimation}}{26}{paragraph*.39}%
+\contentsline {paragraph}{5. Defining the Output Path and Saving the Animation as HTML}{26}{paragraph*.40}%
+\contentsline {paragraph}{6. Confirmation Message}{26}{paragraph*.41}%
+\contentsline {paragraph}{Summary}{27}{paragraph*.42}%
+\contentsline {section}{\numberline {5}Verification}{28}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Function \texttt {test\_quadratic}}{28}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Code Explanation}{28}{subsubsection.5.1.1}%
+\contentsline {paragraph}{Parameters and Exact Solution Setup}{28}{paragraph*.43}%
+\contentsline {paragraph}{Initial and Boundary Conditions}{29}{paragraph*.44}%
+\contentsline {paragraph}{Mathematical Verification Condition}{29}{paragraph*.45}%
+\contentsline {paragraph}{Accuracy Assertion Function}{29}{paragraph*.46}%
+\contentsline {paragraph}{Running the Test on Different Solver Versions}{30}{paragraph*.47}%
+\contentsline {subsubsection}{\numberline {5.1.2}Test Results}{30}{subsubsection.5.1.2}%
+\contentsline {subsubsection}{\numberline {5.1.3}Summary of Verification Test}{30}{subsubsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.2}Function \texttt {convergence\_rates}}{31}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Code Explanation}{31}{subsubsection.5.2.1}%
+\contentsline {paragraph}{Error Computation Function}{31}{paragraph*.48}%
+\contentsline {paragraph}{Setting Up Error and Step Size Lists}{32}{paragraph*.49}%
+\contentsline {paragraph}{Mesh Refinement Loop}{33}{paragraph*.50}%
+\contentsline {paragraph}{Convergence Rate Calculation}{33}{paragraph*.51}%
+\contentsline {paragraph}{Mathematical Derivation of Convergence Rate Formula}{34}{paragraph*.52}%
+\contentsline {paragraph}{Returning and Interpreting the Convergence Rates}{35}{paragraph*.53}%
+\contentsline {subsubsection}{\numberline {5.2.2}Summary of Convergence Test}{35}{subsubsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.3}Function \texttt {test\_convrate\_sincos}}{35}{subsection.5.3}%
+\contentsline {subsubsection}{\numberline {5.3.1}Code Explanation}{35}{subsubsection.5.3.1}%
+\contentsline {subsubsection}{\numberline {5.3.2}Output and Convergence Check}{36}{subsubsection.5.3.2}%
+\contentsline {subsubsection}{\numberline {5.3.3}Convergence Results for Scalar Solver}{37}{subsubsection.5.3.3}%
+\contentsline {subsubsection}{\numberline {5.3.4}Summary of the \texttt {test\_convrate\_sincos} Function}{37}{subsubsection.5.3.4}%
+\contentsline {section}{\numberline {6}GitHub Link to Solver and Exercise Codes and Animations}{38}{section.6}%
+\contentsline {paragraph}{Solver Code Link:}{38}{paragraph*.54}%
+\contentsline {paragraph}{Exercise Codes Link:}{38}{paragraph*.55}%
+\contentsline {paragraph}{Animation Link:}{38}{paragraph*.56}%
+\contentsline {section}{\numberline {7}Exercise: Simulating a Plucked Guitar String}{39}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Setting Up the Problem}{39}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Defining Problem-Specific Functions}{40}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Setting Up Directory for Saving Results and Defining Callback Functions}{40}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Solving the Wave Equation and Generating Output}{41}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Summary of Exercise}{42}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}Link to Code, Simulation Results and Experiments}{42}{subsection.7.6}%
+\contentsline {paragraph}{Code Link:}{42}{paragraph*.57}%
+\contentsline {paragraph}{Animation Link:}{42}{paragraph*.58}%
+\contentsline {subsubsection}{\numberline {7.6.1}Experiment: Wave Propagation on a Plucked String}{43}{subsubsection.7.6.1}%
+\contentsline {section}{\numberline {8}Exercise: Simulating Standing Waves}{43}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Setting Up the Problem}{43}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Phase Change upon Reflection and Boundary Conditions}{44}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Defining Initial Conditions for a Standing Wave}{44}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}Capturing Simulation Data for Visualization}{45}{subsection.8.4}%
+\contentsline {subsection}{\numberline {8.5}Running the Simulation and Generating Output}{45}{subsection.8.5}%
+\contentsline {subsection}{\numberline {8.6}Summary of the Standing Wave Simulation}{46}{subsection.8.6}%
+\contentsline {section}{\numberline {9}Example: Standing Wave with Exact Solution Comparison}{46}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Problem Setup and Parameters}{46}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Exact Solution for Standing Wave}{46}{subsection.9.2}%
+\contentsline {subsubsection}{\numberline {9.2.1}Mathematical Representation of the Exact Solution}{46}{subsubsection.9.2.1}%
+\contentsline {subsubsection}{\numberline {9.2.2}Interpretation of the Solution Components}{47}{subsubsection.9.2.2}%
+\contentsline {subsubsection}{\numberline {9.2.3}Code Implementation of the Exact Solution}{47}{subsubsection.9.2.3}%
+\contentsline {subsubsection}{\numberline {9.2.4}Purpose of the Exact Solution in Error Analysis}{47}{subsubsection.9.2.4}%
+\contentsline {subsection}{\numberline {9.3}Initial and Boundary Conditions}{47}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Error Calculation}{48}{subsection.9.4}%
+\contentsline {subsubsection}{\numberline {9.4.1}L2 Norm Error Calculation}{48}{subsubsection.9.4.1}%
+\contentsline {subsubsection}{\numberline {9.4.2}Maximum Error Norm Calculation}{48}{subsubsection.9.4.2}%
+\contentsline {subsubsection}{\numberline {9.4.3}Implementation of Error Calculation in Code}{49}{subsubsection.9.4.3}%
+\contentsline {subsubsection}{\numberline {9.4.4}Purpose of Error Calculation}{49}{subsubsection.9.4.4}%
+\contentsline {subsection}{\numberline {9.5}Visualization of Results with Error Comparison}{49}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Running the Solver and Generating the Animation}{50}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Link to Code, Simulation Results, and Theory/Experiments}{50}{subsection.9.7}%
+\contentsline {paragraph}{Code Link:}{50}{paragraph*.59}%
+\contentsline {paragraph}{Animation Link:}{50}{paragraph*.60}%
+\contentsline {paragraph}{Theory Link:}{51}{paragraph*.61}%
+\contentsline {section}{\numberline {10}Exercise: Simulating Gaussian Wave Propagation}{51}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Setting Up the Problem}{51}{subsection.10.1}%
+\contentsline {subsubsection}{\numberline {10.1.1}Derived Parameters}{51}{subsubsection.10.1.1}%
+\contentsline {subsection}{\numberline {10.2}Defining Problem-Specific Functions}{52}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Setting Up Directory for Saving Results and Defining Callback Functions}{52}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Running the Simulation and Generating Output}{53}{subsection.10.4}%
+\contentsline {subsection}{\numberline {10.5}Summary of the Gaussian Wave Packet Exercise}{54}{subsection.10.5}%
+\contentsline {subsection}{\numberline {10.6}Link to Code, Simulation Results, and Theory/Experiments}{54}{subsection.10.6}%
+\contentsline {paragraph}{Code Link:}{54}{paragraph*.62}%
+\contentsline {paragraph}{Animation Link:}{54}{paragraph*.63}%
+\contentsline {paragraph}{Theory Link:}{54}{paragraph*.64}%
+\contentsline {section}{\numberline {11}Exercise: Simulating Wave Propagation with a Moving Left Boundary}{54}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Setting Up the Problem}{54}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Defining the Moving Left Boundary Condition}{55}{subsection.11.2}%
+\contentsline {subsubsection}{\numberline {11.2.1}Option 1: Specified Oscillation Intervals}{55}{subsubsection.11.2.1}%
+\contentsline {subsubsection}{\numberline {11.2.2}Option 2: Periodic Pulses with Pulse Duration}{55}{subsubsection.11.2.2}%
+\contentsline {subsection}{\numberline {11.3}Defining Initial Conditions}{56}{subsection.11.3}%
+\contentsline {subsection}{\numberline {11.4}Setting Up Data Capture and Visualization}{56}{subsection.11.4}%
+\contentsline {subsection}{\numberline {11.5}Modifying the Solver for the Moving Boundary Condition}{57}{subsection.11.5}%
+\contentsline {subsubsection}{\numberline {11.5.1}Function Overview and Code Explanation}{57}{subsubsection.11.5.1}%
+\contentsline {subsubsection}{\numberline {11.5.2}Step-by-Step Explanation}{58}{subsubsection.11.5.2}%
+\contentsline {paragraph}{1. Defining Time and Spatial Grids}{58}{paragraph*.65}%
+\contentsline {paragraph}{2. Applying the Oscillating Boundary Condition: The Wrapped User Action Function}{58}{paragraph*.66}%
+\contentsline {paragraph}{3. Calling the Standard Solver}{59}{paragraph*.67}%
+\contentsline {paragraph}{Summary of Key Components}{59}{paragraph*.68}%
+\contentsline {subsection}{\numberline {11.6}Running the Simulation and Generating Output}{59}{subsection.11.6}%
+\contentsline {subsection}{\numberline {11.7}Summary of the Moving Boundary Condition Exercise}{60}{subsection.11.7}%
+\contentsline {subsection}{\numberline {11.8}Link to Code, Simulation Results, and Theory/Experiments}{60}{subsection.11.8}%
+\contentsline {paragraph}{Code Link:}{60}{paragraph*.69}%
+\contentsline {paragraph}{Animation Link:}{60}{paragraph*.70}%
+\contentsline {paragraph}{Theory Link:}{60}{paragraph*.71}%
+\contentsline {section}{\numberline {12}Solver for the Wave Equation with Variable Wave Velocity}{61}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Function Header and Code}{61}{subsection.12.1}%
+\contentsline {subsubsection}{\numberline {12.1.1}Parameters}{62}{subsubsection.12.1.1}%
+\contentsline {subsection}{\numberline {12.2}Initialization of the Solution Arrays}{62}{subsection.12.2}%
+\contentsline {subsubsection}{\numberline {12.2.1}Code Implementation for Initialization}{63}{subsubsection.12.2.1}%
+\contentsline {paragraph}{Explanation of the Code}{63}{paragraph*.72}%
+\contentsline {subsubsection}{\numberline {12.2.2}Role of Each Array in the Time-Stepping Scheme}{63}{subsubsection.12.2.2}%
+\contentsline {subsubsection}{\numberline {12.2.3}Benefits of This Initialization}{64}{subsubsection.12.2.3}%
+\contentsline {subsection}{\numberline {12.3}Implementation of the First Time Step}{64}{subsection.12.3}%
+\contentsline {subsubsection}{\numberline {12.3.1}Mathematical Update Formula}{64}{subsubsection.12.3.1}%
+\contentsline {subsubsection}{\numberline {12.3.2}Code Implementation for the First Time Step}{64}{subsubsection.12.3.2}%
+\contentsline {subsubsection}{\numberline {12.3.3}Explanation of the Code}{65}{subsubsection.12.3.3}%
+\contentsline {subsection}{\numberline {12.4}Time-Stepping Loop}{65}{subsection.12.4}%
+\contentsline {subsubsection}{\numberline {12.4.1}Code Implementation of the Time-Stepping Loop}{65}{subsubsection.12.4.1}%
+\contentsline {subsubsection}{\numberline {12.4.2}Boundary Conditions}{65}{subsubsection.12.4.2}%
+\contentsline {paragraph}{Code for Boundary Conditions}{66}{paragraph*.73}%
+\contentsline {subsection}{\numberline {12.5}Updating Previous Solutions}{66}{subsection.12.5}%
+\contentsline {paragraph}{Code Implementation}{66}{paragraph*.74}%
+\contentsline {paragraph}{Explanation of the Code}{66}{paragraph*.75}%
+\contentsline {subsection}{\numberline {12.6}Return Values}{66}{subsection.12.6}%
+\contentsline {section}{\numberline {13}Example: Wave Propagation with Variable Velocity and Periodic Boundary Pulses}{66}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Problem Setup}{67}{subsection.13.1}%
+\contentsline {paragraph}{Wave Speeds and Medium Properties}{67}{paragraph*.76}%
+\contentsline {paragraph}{Boundary Pulse}{67}{paragraph*.77}%
+\contentsline {subsection}{\numberline {13.2}Code Implementation}{67}{subsection.13.2}%
+\contentsline {subsection}{\numberline {13.3}Problem Setup and Parameters}{67}{subsection.13.3}%
+\contentsline {subsubsection}{\numberline {13.3.1}Domain and Spatial Resolution}{68}{subsubsection.13.3.1}%
+\contentsline {subsubsection}{\numberline {13.3.2}Courant Number and Stability}{68}{subsubsection.13.3.2}%
+\contentsline {subsubsection}{\numberline {13.3.3}Simulation Time and Boundary Pulse Parameters}{68}{subsubsection.13.3.3}%
+\contentsline {subsubsection}{\numberline {13.3.4}Directory for Saving Animation Frames}{68}{subsubsection.13.3.4}%
+\contentsline {subsubsection}{\numberline {13.3.5}Material Properties and Wave Speeds}{69}{subsubsection.13.3.5}%
+\contentsline {subsubsection}{\numberline {13.3.6}Reflection and Transmission Coefficients}{69}{subsubsection.13.3.6}%
+\contentsline {subsubsection}{\numberline {13.3.7}Initial and Boundary Conditions}{70}{subsubsection.13.3.7}%
+\contentsline {subsubsection}{\numberline {13.3.8}Variable Wave Speed Across the Domain}{70}{subsubsection.13.3.8}%
+\contentsline {subsubsection}{\numberline {13.3.9}Solution and Visualization Setup}{70}{subsubsection.13.3.9}%
+\contentsline {subsubsection}{\numberline {13.3.10}Setting Up the Spatial Grid and Variable Wave Speed}{71}{subsubsection.13.3.10}%
+\contentsline {paragraph}{Spatial Grid and Wave Speed Function}{71}{paragraph*.78}%
+\contentsline {subsubsection}{\numberline {13.3.11}Solver Wrapper for Variable Velocity}{71}{subsubsection.13.3.11}%
+\contentsline {paragraph}{Function Parameters}{71}{paragraph*.79}%
+\contentsline {paragraph}{Setting Up the Time and Spatial Grid}{72}{paragraph*.80}%
+\contentsline {paragraph}{Boundary Condition with Wrapped User Action}{73}{paragraph*.81}%
+\contentsline {paragraph}{Executing the Variable Velocity Solver}{73}{paragraph*.82}%
+\contentsline {subsubsection}{\numberline {13.3.12}Execution of the Solver with Variable Velocity}{74}{subsubsection.13.3.12}%
+\contentsline {subsection}{\numberline {13.4}Link to Code, Simulation Results, and Theory/Experiments}{74}{subsection.13.4}%
+\contentsline {paragraph}{Code Link:}{74}{paragraph*.83}%
+\contentsline {paragraph}{Animation Link:}{74}{paragraph*.84}%
+\contentsline {paragraph}{Theory Link:}{74}{paragraph*.85}%
