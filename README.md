@@ -23,5 +23,5 @@ I acknowledge the use of ChatGPT as a tool for writing assistance and code debug
     Ensure that you implement the appropriate damping, restoring force, and external force functions.
     
     This code is primarily intended for educational purposes and to assist in learning numerical methods 
-    for solving differential equations in mechanical vibration systems, wave PDE.
+    for solving ODE in mechanical vibration systems, wave PDE and their programming in Python.
 
