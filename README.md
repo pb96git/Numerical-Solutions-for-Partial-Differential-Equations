@@ -4,6 +4,7 @@ This repository contains codes and documentation developed as part of the PhD co
 As a course material book, we are using Finite Difference Computing with PDEs: A Modern Software Approach by Hans Petter Langtangen and Svein Linge and 
 Riemann solvers and numerical methods for fluid dynamics: a practical introduction by Toro, E. F.
 
+I acknowledge the use of ChatGPT as a tool for writing assistance and code debugging used in the preparation of this repository.
 
     
 
