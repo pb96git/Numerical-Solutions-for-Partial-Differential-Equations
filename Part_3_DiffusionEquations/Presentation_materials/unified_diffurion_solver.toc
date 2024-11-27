@@ -1,0 +1,94 @@
+\contentsline {section}{\numberline {1}1D Diffusion Solver Development}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Mathematical Formulation}{3}{subsection.1.1}%
+\contentsline {paragraph}{Code Implementation}{3}{paragraph*.1}%
+\contentsline {subsection}{\numberline {1.2}Function Parameters}{3}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Spatial and Temporal Discretization}{4}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Time-Stepping Methods}{4}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Forward Euler Method}{4}{subsubsection.1.4.1}%
+\contentsline {paragraph}{Scalar Implementation}{4}{paragraph*.2}%
+\contentsline {paragraph}{Vectorized Implementation}{5}{paragraph*.3}%
+\contentsline {paragraph}{Boundary Conditions}{5}{paragraph*.4}%
+\contentsline {paragraph}{User-Defined Actions}{5}{paragraph*.5}%
+\contentsline {paragraph}{Updating for the Next Time Step}{5}{paragraph*.6}%
+\contentsline {subsubsection}{\numberline {1.4.2}Backward Euler (Implicit Method)}{5}{subsubsection.1.4.2}%
+\contentsline {paragraph}{Discretization}{6}{paragraph*.7}%
+\contentsline {paragraph}{Implementation in Code}{7}{paragraph*.8}%
+\contentsline {paragraph}{Vectorized Implementation Using Sparse Matrices}{8}{paragraph*.9}%
+\contentsline {subparagraph}{Sparse Matrix Setup}{9}{subparagraph*.10}%
+\contentsline {subparagraph}{Right-Hand Side Vector}{9}{subparagraph*.11}%
+\contentsline {subparagraph}{Solving the Linear System}{10}{subparagraph*.12}%
+\contentsline {subparagraph}{Advantages of Sparse Matrices}{11}{subparagraph*.13}%
+\contentsline {subsubsection}{\numberline {1.4.3}The General \(\theta \)-Rule}{11}{subsubsection.1.4.3}%
+\contentsline {paragraph}{Applying the \(\theta \)-Rule to the Diffusion Equation}{11}{paragraph*.14}%
+\contentsline {paragraph}{Code Implementation: \(\theta \)-Rule Diffusion Solver}{11}{paragraph*.15}%
+\contentsline {subparagraph}{Initialization and Setup}{12}{subparagraph*.16}%
+\contentsline {subparagraph}{Initial Condition}{12}{subparagraph*.17}%
+\contentsline {subparagraph}{Matrix Assembly}{12}{subparagraph*.18}%
+\contentsline {subparagraph}{Time-Stepping Loop}{13}{subparagraph*.19}%
+\contentsline {subparagraph}{Solving the Linear System}{13}{subparagraph*.20}%
+\contentsline {subparagraph}{Updating and Finalizing}{13}{subparagraph*.21}%
+\contentsline {subparagraph}{Output}{13}{subparagraph*.22}%
+\contentsline {subsection}{\numberline {1.5}GitHub Repository}{14}{subsection.1.5}%
+\contentsline {subsection}{\numberline {1.6}Analysis of Diffusion Equation}{14}{subsection.1.6}%
+\contentsline {subsubsection}{\numberline {1.6.1}Analyzing Fourier Components in Numerical Schemes}{14}{subsubsection.1.6.1}%
+\contentsline {paragraph}{Wave Representation of Solutions}{14}{paragraph*.23}%
+\contentsline {paragraph}{Initial Conditions and Fourier Representation}{14}{paragraph*.24}%
+\contentsline {paragraph}{Numerical Schemes and Wave Components}{14}{paragraph*.25}%
+\contentsline {subsubsection}{\numberline {1.6.2}Analysis of Finite Difference Schemes for the Diffusion Equation}{14}{subsubsection.1.6.2}%
+\contentsline {paragraph}{Wave Components and Amplification Factor}{15}{paragraph*.26}%
+\contentsline {paragraph}{Stability}{15}{paragraph*.27}%
+\contentsline {paragraph}{Accuracy}{15}{paragraph*.28}%
+\contentsline {subsubsection}{\numberline {1.6.3}Analysis of the Forward Euler scheme}{15}{subsubsection.1.6.3}%
+\contentsline {paragraph}{Derivation of Amplification Factor}{16}{paragraph*.29}%
+\contentsline {subparagraph}{Factoring Out Common Terms}{16}{subparagraph*.30}%
+\contentsline {subparagraph}{Simplification of Exponentials}{17}{subparagraph*.31}%
+\contentsline {subparagraph}{Final Expression for \( A \)}{17}{subparagraph*.32}%
+\contentsline {paragraph}{Stability Condition}{17}{paragraph*.33}%
+\contentsline {paragraph}{Accuracy}{17}{paragraph*.34}%
+\contentsline {subparagraph}{Step 1:}{17}{subparagraph*.35}%
+\contentsline {subparagraph}{Step 2:}{18}{subparagraph*.36}%
+\contentsline {subparagraph}{Step 3:}{18}{subparagraph*.37}%
+\contentsline {subparagraph}{Step 4:}{18}{subparagraph*.38}%
+\contentsline {subsubsection}{\numberline {1.6.4}Analysis of the Backward Euler Scheme}{18}{subsubsection.1.6.4}%
+\contentsline {paragraph}{Derivation of Amplification Factor}{19}{paragraph*.39}%
+\contentsline {subparagraph}{1. Wave Component Assumption}{19}{subparagraph*.40}%
+\contentsline {subparagraph}{2. Simplify the Exponential Terms}{19}{subparagraph*.41}%
+\contentsline {subparagraph}{3. Simplify Using Trigonometric Identities}{19}{subparagraph*.42}%
+\contentsline {subparagraph}{4. Final Result}{19}{subparagraph*.43}%
+\contentsline {paragraph}{Stability Analysis}{20}{paragraph*.44}%
+\contentsline {paragraph}{Numerical Solution}{20}{paragraph*.45}%
+\contentsline {subsection}{\numberline {1.7}Analysis of Amplification Factor Accuracy for Numerical Schemes}{20}{subsection.1.7}%
+\contentsline {subsubsection}{\numberline {1.7.1}Insights from Figure~\ref {fig:amp_factors_multiple_F_and_schemes}}{20}{subsubsection.1.7.1}%
+\contentsline {section}{\numberline {2}2D Diffusion Solver Development}{22}{section.2}%
+\contentsline {subsection}{\numberline {2.1}The Unified \(\theta \)-Rule Discretization}{22}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Construction of the System Matrix}{22}{subsection.2.2}%
+\contentsline {paragraph}{Boundary Conditions}{23}{paragraph*.47}%
+\contentsline {paragraph}{Interior Equations}{23}{paragraph*.48}%
+\contentsline {paragraph}{Coefficient Matrix Structure}{23}{paragraph*.49}%
+\contentsline {paragraph}{Sparsity of the Matrix}{23}{paragraph*.50}%
+\contentsline {subsection}{\numberline {2.3}Algorithm for the Coefficient Matrix}{23}{subsection.2.3}%
+\contentsline {paragraph}{General Approach}{23}{paragraph*.51}%
+\contentsline {subsection}{\numberline {2.4}Implementation in Python}{25}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}Function Signature and Parameters}{25}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\numberline {2.4.2}Setup and Initialization}{25}{subsubsection.2.4.2}%
+\contentsline {subsubsection}{\numberline {2.4.3}Fourier Numbers and Source Term Handling}{26}{subsubsection.2.4.3}%
+\contentsline {subsubsection}{\numberline {2.4.4}Initializing Solution Arrays}{26}{subsubsection.2.4.4}%
+\contentsline {subsubsection}{\numberline {2.4.5}Initial Condition Setup}{27}{subsubsection.2.4.5}%
+\contentsline {subsubsection}{\numberline {2.4.6}Matrix and RHS Vector Initialization}{27}{subsubsection.2.4.6}%
+\contentsline {subsubsection}{\numberline {2.4.7}Matrix Assembly}{27}{subsubsection.2.4.7}%
+\contentsline {subsubsection}{\numberline {2.4.8}Time-Stepping Loop}{27}{subsubsection.2.4.8}%
+\contentsline {paragraph}{Linear System Solution:}{28}{paragraph*.52}%
+\contentsline {paragraph}{Solution Assignment:}{28}{paragraph*.53}%
+\contentsline {paragraph}{User-Defined Actions:}{29}{paragraph*.54}%
+\contentsline {paragraph}{Updating for the Next Time Step:}{29}{paragraph*.55}%
+\contentsline {subsubsection}{\numberline {2.4.9}Finalize and Return}{29}{subsubsection.2.4.9}%
+\contentsline {subsection}{\numberline {2.5}Verification Using the \texttt {quadratic\_solvers\_3} Function}{29}{subsection.2.5}%
+\contentsline {subsubsection}{\numberline {2.5.1}Mathematical Representation and Explanation}{30}{subsubsection.2.5.1}%
+\contentsline {paragraph}{Exact Solution.}{30}{paragraph*.56}%
+\contentsline {paragraph}{Source Term.}{30}{paragraph*.57}%
+\contentsline {paragraph}{Initial Condition.}{31}{paragraph*.58}%
+\contentsline {paragraph}{Domain Parameters.}{31}{paragraph*.59}%
+\contentsline {paragraph}{Numerical Verification.}{31}{paragraph*.60}%
+\contentsline {paragraph}{Boundary Conditions.}{31}{paragraph*.61}%
+\contentsline {subsubsection}{\numberline {2.5.2}Testing the \texttt {quadratic\_solvers\_3} Function}{31}{subsubsection.2.5.2}%
+\contentsline {paragraph}{Description of the Test Function.}{31}{paragraph*.62}%

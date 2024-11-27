@@ -1,0 +1,103 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}1D Diffusion Solver Development}{3}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Mathematical Formulation}{3}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Code Implementation}{3}{paragraph*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Function Parameters}{3}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Spatial and Temporal Discretization}{4}{subsection.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Time-Stepping Methods}{4}{subsection.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.4.1}Forward Euler Method}{4}{subsubsection.1.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Scalar Implementation}{4}{paragraph*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Vectorized Implementation}{5}{paragraph*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Boundary Conditions}{5}{paragraph*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{User-Defined Actions}{5}{paragraph*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Updating for the Next Time Step}{5}{paragraph*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.4.2}Backward Euler (Implicit Method)}{5}{subsubsection.1.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Discretization}{6}{paragraph*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Implementation in Code}{7}{paragraph*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Vectorized Implementation Using Sparse Matrices}{8}{paragraph*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Sparse Matrix Setup}{9}{subparagraph*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Right-Hand Side Vector}{9}{subparagraph*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Solving the Linear System}{10}{subparagraph*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Advantages of Sparse Matrices}{11}{subparagraph*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.4.3}The General \(\theta \)-Rule}{11}{subsubsection.1.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Applying the \(\theta \)-Rule to the Diffusion Equation}{11}{paragraph*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Code Implementation: \(\theta \)-Rule Diffusion Solver}{11}{paragraph*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Initialization and Setup}{12}{subparagraph*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Initial Condition}{12}{subparagraph*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Matrix Assembly}{12}{subparagraph*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Time-Stepping Loop}{13}{subparagraph*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Solving the Linear System}{13}{subparagraph*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Updating and Finalizing}{13}{subparagraph*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Output}{13}{subparagraph*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}GitHub Repository}{14}{subsection.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.6}Analysis of Diffusion Equation}{14}{subsection.1.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.1}Analyzing Fourier Components in Numerical Schemes}{14}{subsubsection.1.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Wave Representation of Solutions}{14}{paragraph*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Initial Conditions and Fourier Representation}{14}{paragraph*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Numerical Schemes and Wave Components}{14}{paragraph*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.2}Analysis of Finite Difference Schemes for the Diffusion Equation}{14}{subsubsection.1.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Wave Components and Amplification Factor}{15}{paragraph*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Stability}{15}{paragraph*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Accuracy}{15}{paragraph*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.3}Analysis of the Forward Euler scheme}{15}{subsubsection.1.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Derivation of Amplification Factor}{16}{paragraph*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Factoring Out Common Terms}{16}{subparagraph*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Simplification of Exponentials}{17}{subparagraph*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Final Expression for \( A \)}{17}{subparagraph*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Stability Condition}{17}{paragraph*.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Accuracy}{17}{paragraph*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Step 1:}{17}{subparagraph*.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Step 2:}{18}{subparagraph*.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Step 3:}{18}{subparagraph*.37}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Step 4:}{18}{subparagraph*.38}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.4}Analysis of the Backward Euler Scheme}{18}{subsubsection.1.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Derivation of Amplification Factor}{19}{paragraph*.39}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{1. Wave Component Assumption}{19}{subparagraph*.40}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{2. Simplify the Exponential Terms}{19}{subparagraph*.41}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{3. Simplify Using Trigonometric Identities}{19}{subparagraph*.42}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{4. Final Result}{19}{subparagraph*.43}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Stability Analysis}{20}{paragraph*.44}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Numerical Solution}{20}{paragraph*.45}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.7}Analysis of Amplification Factor Accuracy for Numerical Schemes}{20}{subsection.1.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.1}Insights from Figure~\ref {fig:amp_factors_multiple_F_and_schemes}}{20}{subsubsection.1.7.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Amplification factors for different F and numerical schemes}}{21}{figure.caption.46}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:amp_factors_multiple_F_and_schemes}{{1}{21}{Amplification factors for different F and numerical schemes}{figure.caption.46}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}2D Diffusion Solver Development}{22}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}The Unified \(\theta \)-Rule Discretization}{22}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Construction of the System Matrix}{22}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Boundary Conditions}{23}{paragraph*.47}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Interior Equations}{23}{paragraph*.48}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Coefficient Matrix Structure}{23}{paragraph*.49}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Sparsity of the Matrix}{23}{paragraph*.50}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Algorithm for the Coefficient Matrix}{23}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{General Approach}{23}{paragraph*.51}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Construction of Coefficient Matrix $A$ and Right-Hand Side $b$ for 2D Diffusion Equation}}{24}{algorithm.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Implementation in Python}{25}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.1}Function Signature and Parameters}{25}{subsubsection.2.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.2}Setup and Initialization}{25}{subsubsection.2.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.3}Fourier Numbers and Source Term Handling}{26}{subsubsection.2.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.4}Initializing Solution Arrays}{26}{subsubsection.2.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.5}Initial Condition Setup}{27}{subsubsection.2.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.6}Matrix and RHS Vector Initialization}{27}{subsubsection.2.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.7}Matrix Assembly}{27}{subsubsection.2.4.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.8}Time-Stepping Loop}{27}{subsubsection.2.4.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Linear System Solution:}{28}{paragraph*.52}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Solution Assignment:}{28}{paragraph*.53}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{User-Defined Actions:}{29}{paragraph*.54}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Updating for the Next Time Step:}{29}{paragraph*.55}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.9}Finalize and Return}{29}{subsubsection.2.4.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Verification Using the \texttt  {quadratic\_solvers\_3} Function}{29}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.1}Mathematical Representation and Explanation}{30}{subsubsection.2.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Exact Solution.}{30}{paragraph*.56}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Source Term.}{30}{paragraph*.57}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Initial Condition.}{31}{paragraph*.58}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Domain Parameters.}{31}{paragraph*.59}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Numerical Verification.}{31}{paragraph*.60}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Boundary Conditions.}{31}{paragraph*.61}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.2}Testing the \texttt  {quadratic\_solvers\_3} Function}{31}{subsubsection.2.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Description of the Test Function.}{31}{paragraph*.62}\protected@file@percent }
+\gdef \@abspage@last{33}
