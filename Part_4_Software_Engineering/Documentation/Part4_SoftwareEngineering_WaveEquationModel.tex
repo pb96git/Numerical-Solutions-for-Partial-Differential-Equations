@@ -1,0 +1,1114 @@
+\documentclass{article}
+\usepackage{amsmath}           % For mathematical equations
+\usepackage{amssymb}           % For additional math symbols
+\usepackage{geometry}          % For page margins
+\usepackage{listings}          % For code formatting
+\usepackage{xcolor}            % For color in listings
+\usepackage{caption}           % For captions in listings
+\usepackage{titlesec}          % For custom section titles
+\usepackage{hyperref}          % For clickable links in the table of contents
+\usepackage{comment}
+
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{enumitem}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+
+\usepackage{graphicx}
+
+\graphicspath{{Figures/}} % Set the path for image files
+
+% Set depth for the table of contents to show only sections and subsections
+\setcounter{tocdepth}{3}
+
+
+
+\hypersetup{bookmarksdepth=2} % Limit the depth for bookmarks as well
+
+% Customizing the code listing environment for Python code
+\lstset{
+	language=Python,                         % Set language to Python
+	basicstyle=\ttfamily\footnotesize,       % Code font and size
+	keywordstyle=\color{blue},               % Keywords in blue
+	commentstyle=\color{gray},               % Comments in gray
+	stringstyle=\color{red},                 % Strings in red
+	breaklines=true,                         % Enable line breaking
+	frame=single,                            % Frame the code
+	columns=flexible,                        % Flexible spacing
+	captionpos=b,                            % Caption at the bottom
+	numbers=left,                            % Line numbers on the left
+	numberstyle=\tiny\color{gray},           % Line number style
+	showspaces=false,                        % Hide spaces
+	showstringspaces=false                   % Hide string spaces
+}
+
+\title{\textbf{Part 4: Software Engineering - Wave Equation Model
+	} \\[0.5em]  % Main title
+	\large \textit{Code Optimization Techniques} \\[2em]  % Subtitle with extra spacing
+}  
+
+\author{\\[12em]  % Adds vertical space between subtitle and author
+	Petar Bosnic \\[0.5em] % Adjust space as needed
+	\textit{University of South-Eastern Norway} \\[2em]  % Adds more space before the date
+}
+
+\date{\today}
+
+\begin{document}
+	
+	% Title page
+	\maketitle
+	\thispagestyle{empty}  % Optionally, remove page number on the title page
+	
+	\vspace{1cm}
+	
+	\begin{center}
+		\textbf{Note}
+	\end{center}
+	
+	\noindent
+	This document was developed as of the PhD course \textit{Numerical Solutions to Partial Differential Equations} under the guidance of Professors Svein Linge and Knut Vågsæther at the University of South-Eastern Norway (USN). Course material includes the textbooks:
+	
+	\begin{itemize}
+		\item \textit{Finite Difference Computing with PDEs: A Modern Software Approach} by Hans Petter Langtangen and Svein Linge (DOI: 10.1007/978-3-319-55456-3)
+		\item \textit{Riemann Solvers and Numerical Methods for Fluid Dynamics: A Practical Introduction} by E. F. Toro (ISBN: 978-3-540-25202-3 978-3-540-49834-6)
+	\end{itemize}
+	
+	\vspace{1cm}
+	
+	\newpage  % Start a new page after the title and note
+	
+	% Table of contents page
+	\tableofcontents
+	\newpage  % Start a new page after the table of contents
+	
+	
+	\section{Saving Large Arrays in Files}
+		\subsection{Saving Large Arrays in Files Using \texttt{numpy.savez}}
+			
+			When performing numerical simulations, large arrays often need to be saved to disk for later analysis.NumPy provides a more efficient and optimized method through \texttt{numpy.savez}. This function allows multiple arrays to be saved in a single compressed \texttt{.npz} file, using meaningful, user-defined names. 
+			
+			\subsubsection{Dynamic Naming for Arrays}
+			
+			In simulations, arrays are saved at different time steps, so dynamic naming is used to reflect the specific time step in the file or array name. For example, if \texttt{u} and \texttt{v} are arrays at time step \texttt{n}, their names can be dynamically generated using Python string formatting:
+			\begin{lstlisting}[language=Python]
+				n = 11  # Example time step
+				u_name = 'u%04d' % n  # Generates 'u0011'
+				v_name = 'v%04d' % n  # Generates 'v0011'
+			\end{lstlisting}
+			Here, \texttt{\%04d} ensures that the integer \texttt{n} is zero-padded to four digits, creating consistent names like \texttt{u0011} or \texttt{v0011}.
+			
+			\subsubsection{Creating a Dictionary of Arrays}
+			
+			The arrays to be saved are added to a dictionary where the keys are the dynamic names (e.g., \texttt{'u0011'}, \texttt{'v0011'}) and the values are the corresponding array data:
+			\begin{lstlisting}[language=Python]
+				import numpy as np
+				
+				# Example arrays
+				u = np.random.rand(100)  # Simulated data for u
+				v = np.random.rand(100)  # Simulated data for v
+				
+				kwargs = {u_name: u, v_name: v}  # Create a dictionary with names and arrays
+			\end{lstlisting}
+			
+			\subsubsection{Saving Arrays Using \texttt{numpy.savez}}
+			\begin{comment}
+				
+			The \texttt{numpy.savez} function is a flexible and efficient way to save multiple arrays into a single compressed \texttt{.npz} file, particularly useful in simulations where arrays are generated dynamically at each time step. By leveraging the unpacking operator \texttt{**kwargs}, it becomes straightforward to save arrays with dynamic names that reflect the specific time step.
+			content...
+			\end{comment}
+			The \texttt{numpy.savez} function saves multiple arrays into a single compressed \texttt{.npz} file.
+			In this method, a dictionary  is created where the keys are dynamically generated names (e.g., \texttt{'u0011'}, \texttt{'v0011'}) that include the time step index \texttt{n}, and the values are the corresponding array data (e.g., \texttt{u}, \texttt{v}). This dictionary is then passed to \texttt{numpy.savez} using the unpacking operator \texttt{**kwargs}, which converts the dictionary into keyword arguments for the function. A dynamic file name is also created to reflect the current time step, ensuring systematic file organization.
+			
+			\begin{lstlisting}[language=Python]
+				# Create dynamic file name and array names
+				fname = '.mydata%04d.dat' % n  # Example: '.mydata0011.dat'
+				u_name = 'u%04d' % n           # Example: 'u0011'
+				v_name = 'v%04d' % n           # Example: 'v0011'
+				
+				# Create a dictionary with dynamic names and arrays
+				kwargs = {u_name: u, v_name: v}
+				
+				# Save arrays to a compressed .npz file
+				np.savez(fname, **kwargs)
+			\end{lstlisting}
+			
+			In this example:
+			\begin{itemize}
+				\item \texttt{\%04d} formats the integer \texttt{n} to zero-pad it to four digits, ensuring consistency in names and file organization.
+				\item The dictionary \texttt{kwargs} contains key-value pairs where:
+				\begin{itemize}
+					\item \textbf{Keys} (e.g., \texttt{'u0011'}, \texttt{'v0011'}) are the dynamically generated names for the arrays.
+					\item \textbf{Values} are the actual arrays to be saved.
+				\end{itemize}
+				\item The \texttt{**kwargs} operator unpacks the dictionary, passing each key-value pair as a keyword argument to \texttt{numpy.savez}.
+			\end{itemize}
+			
+			For instance, if \texttt{kwargs} is:
+			\begin{lstlisting}[language=Python]
+				kwargs = {'u0011': u, 'v0011': v}
+			\end{lstlisting}
+			The \texttt{np.savez} call is equivalent to:
+			\begin{lstlisting}[language=Python]
+				np.savez('.mydata0011.dat', u0011=u, v0011=v)
+			\end{lstlisting}
+			
+			This approach automates the process, making it both flexible and efficient. It avoids repetitive manual specification of names and arrays while ensuring data is stored systematically with meaningful names for easy retrieval later.
+			
+			\begin{comment}
+			
+			\paragraph{What is \texttt{kwargs}?}
+			The term \texttt{kwargs} stands for keyword arguments. In Python, a function can accept an arbitrary number of keyword arguments using the \texttt{**kwargs} syntax. This allows flexibility when the exact number or names of arguments are not known in advance.
+				content...
+			\end{comment}
+			
+			\textbf{Structure:} \texttt{kwargs} is simply a dictionary where:
+			\begin{itemize}
+				\item \textbf{Keys} represent the argument names (e.g., \texttt{'u0011'}, \texttt{'v0011'}).
+				\item \textbf{Values} are the actual data associated with those names (e.g., the arrays \texttt{u} and \texttt{v}).
+			\end{itemize}
+			
+			\textbf{Unpacking:} The \texttt{**} operator unpacks the dictionary so that its key-value pairs are sent to the function as named arguments.
+			
+			\begin{lstlisting}[language=Python]
+				kwargs = {'u0011': u, 'v0011': v}
+				np.savez(fname, **kwargs)  # Equivalent to np.savez(fname, u0011=u, v0011=v)
+			\end{lstlisting}
+			
+			This technique is particularly useful when the number of arguments is variable or when argument names need to be generated dynamically.
+			
+			\begin{comment}
+		
+			\paragraph{Why Use \texttt{**kwargs} Here?}
+			In the context of saving arrays:
+			\begin{itemize}
+				\item Simulations often produce arrays dynamically at each time step.
+				\item These arrays need meaningful, dynamic names (e.g., \texttt{'u0011'}, \texttt{'v0011'}) for better organization.
+			\end{itemize}
+			
+			Manually specifying these names and arrays for \texttt{numpy.savez} at every step would be tedious and error-prone:
+			\begin{lstlisting}[language=Python]
+				np.savez(fname, u0011=u, v0011=v)  # Manual and inflexible
+			\end{lstlisting}
+			
+			Instead, using a dictionary and the \texttt{**kwargs} operator simplifies the process:
+			\begin{lstlisting}[language=Python]
+				kwargs = {'u0011': u, 'v0011': v}
+				np.savez(fname, **kwargs)  # Dynamic and flexible
+			\end{lstlisting}
+			
+			This approach automates the association of array names and values, making the code cleaner, more concise, and adaptable to changes, such as adding more arrays to the simulation.
+			
+				content...
+			\end{comment}
+			
+			\subsubsection{Saving Static Metadata}
+			
+			In many simulations, metadata such as spatial grid points (\texttt{x}) remains constant and does not need to be saved repeatedly for each time step. Such data can be saved once in a separate file:
+			\begin{lstlisting}[language=Python]
+				if n == 0:  # Save metadata only at the first time step
+					x = np.linspace(0, 1, 100)  # Example grid points
+					np.savez('.mydata_x.dat', x=x)  # Save metadata to a separate file
+			\end{lstlisting}
+			
+			\subsubsection{Loading the Data}
+			
+			The stored \texttt{.npz} file can later be loaded using \texttt{numpy.load}, and individual arrays can be accessed by their names:
+			\begin{lstlisting}[language=Python]
+				data = np.load('.mydata0011.dat')  # Load the saved file
+				u_loaded = data['u0011']  # Access the array u at time step 11
+				v_loaded = data['v0011']  # Access the array v at time step 11
+			\end{lstlisting}
+			
+			\begin{comment}
+				
+			\subsubsection{Why Use \texttt{numpy.savez}?}
+			
+			\begin{itemize}
+				\item \textbf{Efficiency}: Optimized for numerical arrays, making it faster and more efficient than general-purpose tools.
+				\item \textbf{Compression}: The \texttt{.npz} format reduces file size.
+				\item \textbf{Organization}: Dynamic naming conventions ensure data is stored systematically and is easy to retrieve.
+				\item \textbf{Simplicity}: Saves multiple arrays in a single step without manually managing individual files.
+			\end{itemize}
+			content...
+			\end{comment}
+			
+			\subsubsection{Merging and Reading Zip Archives in NumPy}
+			
+			In numerical simulations, individual calls to \texttt{numpy.savez} produce separate \texttt{.npz} files for each dataset. To streamline file management and improve convenience, these archives can be merged into a single zip archive. The function \texttt{merge\_zip\_archives} achieves this by combining multiple \texttt{.npz} files into a single archive. After merging, the original \texttt{.npz} files are deleted, leaving only the combined archive.
+			
+			\paragraph{Function Definition and Inputs}
+			The function accepts two arguments:
+			\begin{itemize}
+				\item \texttt{individual\_archives}: A list of \texttt{.npz} file names or a wildcard pattern (e.g., \texttt{'*.npz'}) for selecting files with \texttt{glob.glob}.
+				\item \texttt{archive\_name}: The name of the resulting merged archive.
+			\end{itemize}
+			
+			\begin{lstlisting}[language=Python]
+				def merge_zip_archives(individual_archives, archive_name):
+					"""Merge individual zip archives made with numpy.savez into one archive."""
+					import zipfile
+					import glob
+					import os
+			\end{lstlisting}
+			
+			
+			
+			\paragraph{Steps in the Function} :
+			
+			\textbf{Handle Input Files:} The function first checks if \texttt{individual\_archives} is a list/tuple of file names or a string. If it is a string, \texttt{glob.glob} is used to generate a list of matching file names:
+			\begin{lstlisting}[language=Python]
+				if isinstance(individual_archives, (list, tuple)):
+					filenames = individual_archives
+				elif isinstance(individual_archives, str):
+					filenames = glob.glob(individual_archives)
+			\end{lstlisting}
+			
+			\textbf{Create the Final Archive:} A new zip archive is opened in write mode:
+			\begin{lstlisting}[language=Python]
+				archive = zipfile.ZipFile(archive_name, 'w', zipfile.ZIP_DEFLATED, allowZip64=True)
+			\end{lstlisting}
+			
+			\textbf{Merge Individual Archives:} Each \texttt{.npz} file is opened, its contents extracted, and added to the new combined archive. The \texttt{.npy} extension is removed for cleaner naming:
+			\begin{lstlisting}[language=Python]
+				for filename in filenames:
+					f = zipfile.ZipFile(filename, 'r', zipfile.ZIP_DEFLATED)  # Open each archive
+					for name in f.namelist():  # List all files (arrays) in the archive
+						data = f.open(name, 'r')  # Open each file
+						archive.writestr(name[:-4], data.read())  # Write to new archive (remove .npy)
+					f.close()
+					os.remove(filename)  # Delete the original archive
+			\end{lstlisting}
+			
+			\textbf{Close the Archive:} Once all files have been added, the archive is closed:
+			\begin{lstlisting}[language=Python]
+				archive.close()
+			\end{lstlisting}
+			
+			\paragraph{Benefits of the Merging Process}
+			\begin{itemize}
+				\item \textbf{Simplifies File Management:} Combines multiple files into one, making it easier to store, or back up data.
+				\item \textbf{Removes Redundancy:} Deletes the original \texttt{.npz} files after merging.
+				
+			\end{itemize}
+			
+			\paragraph{Usage Example}
+			To merge all \texttt{.npz} files in the current directory into a single archive named \texttt{merged\_archive.zip}:
+			\begin{lstlisting}[language=Python]
+				merge_zip_archives('*.npz', 'merged_archive.zip')
+			\end{lstlisting}
+			
+			\begin{comment}
+			
+			\paragraph{Reading the Merged Archive}
+			The resulting archive can be read directly using \texttt{numpy.load}:
+			\begin{lstlisting}[language=Python]
+				import numpy as np
+				
+				# Load the merged archive
+				data = np.load('merged_archive.zip')
+				
+				# Access each array by its name
+				for array_name in data:
+					print(f"Array {array_name}: {data[array_name]}")
+			\end{lstlisting}
+			
+			\paragraph{Key Considerations}
+			\begin{itemize}
+				\item \textbf{File Naming:} The \texttt{.npy} extension is removed in the merged archive for cleaner names.
+				\item \textbf{Efficiency:} Merging reduces the overhead of managing multiple files, improving organization and ease of sharing.
+				\item \textbf{Accessibility:} \texttt{numpy.load} ensures simple and efficient retrieval of arrays by their original names.
+			\end{itemize}
+				content...
+			\end{comment}
+			
+	
+	
+		\subsection{Using \texttt{joblib} to Store Arrays in Files}
+		
+			The \texttt{Storage} class described below simplifies saving and retrieving data objects by name, wrapping \texttt{joblib}'s functionality.
+			
+			\subsubsection{Overview of the \texttt{Storage} Class}
+			
+			The \texttt{Storage} class is designed to:
+			\begin{itemize}
+				\item Save Python data structures (e.g., arrays, dictionaries) to disk with a specific name.
+				\item Retrieve previously saved data objects using their names.
+				\item Use a user-specified directory to store data, enabling flexible organization.
+			\end{itemize}
+			
+			The class leverages the \texttt{joblib.Memory} object and Python's concept of memoization, which caches results of function calls for efficient reuse.
+			
+			\subsubsection{How the \texttt{Storage} Class Works}
+			
+			\paragraph{1. Initialization (\texttt{\_\_init\_\_} Method)}  
+			The class initializes with the following parameters:
+			\begin{itemize}
+				\item \texttt{cachedir}: Specifies the directory where objects are stored.
+				\item \texttt{verbose}: Controls verbosity during save and retrieve operations.
+			\end{itemize}
+			
+			\begin{lstlisting}[language=Python]
+				def __init__(self, cachedir='tmp', verbose=1):
+					"""Initialize the storage system."""
+					import joblib
+					self.memory = joblib.Memory(cachedir=cachedir, verbose=verbose)  # Set up caching
+					self.verbose = verbose
+					self.retrieve = self.memory.cache(self.retrieve, ignore=['data'])  # Caching logic
+					self.save = self.retrieve  # Save operation reuses retrieve logic
+			\end{lstlisting}
+			
+			Key points:
+			\begin{itemize}
+				\item \texttt{joblib.Memory} manages the caching mechanism, storing data in the directory specified by \texttt{cachedir}.
+				\item \texttt{self.retrieve} is wrapped with \texttt{self.memory.cache}, enabling memoization for the retrieve function.
+			\end{itemize}
+			
+			\paragraph{2. The \texttt{save} and \texttt{retrieve} Methods}  
+			Both \texttt{save} and \texttt{retrieve} operations rely on the \texttt{retrieve} function. The caching mechanism ensures:
+			\begin{itemize}
+				\item If the data with the specified name has not been stored before, it is saved to disk.
+				\item If the data with the specified name already exists, it is fetched directly from disk.
+			\end{itemize}
+			
+			\begin{lstlisting}[language=Python]
+				def retrieve(self, name, data=None):
+					if self.verbose > 0:  # Print info if verbosity is enabled
+						print('joblib save of', name)
+					return data
+			\end{lstlisting}
+			
+			\begin{comment}
+				
+			Key points:
+			\begin{itemize}
+				\item The \texttt{name} parameter uniquely identifies the data object.
+				\item The \texttt{data} parameter contains the object to save. If omitted, the function retrieves the stored object.
+			\end{itemize}
+			content...
+			\end{comment}
+			
+			\subsubsection{Memoization and Caching}
+			
+			Memoization stores the results of function calls so repeated calls with the same arguments can return cached results. In this context:
+			\begin{itemize}
+				\item \texttt{self.memory.cache(self.retrieve, ignore=['data'])} wraps the \texttt{retrieve} function with caching logic.
+				\item The \texttt{name} parameter determines whether to cache, save, or retrieve the object.
+			\end{itemize}
+			
+		%	This approach is efficient because:
+			\begin{itemize}
+				\item Large data objects do not need to be recreated or re-saved repeatedly.
+				%\item Disk storage acts as a persistent cache, saving memory during long-running simulations.
+			\end{itemize}
+			
+		\subsection{Using a Hash to Create a File or Directory Name}
+		
+			In simulations, organizing and storing results systematically is essential. A reliable method is to use a hash string, which encodes input data into a unique and concise file or directory name. 
+			%This approach ensures that previously computed simulations can be easily recognized and reused.
+			
+			%\subsubsection{What is a Hash String?}
+			
+			A hash string is a identifier generated from input data. It uniquely represents the input. Hash functions like SHA1 (Secure Hash Algorithm 1) produce 40-character-long strings and are widely used in systems like Git to uniquely identify files or changes.
+			\begin{comment}
+				
+			For example:
+			\[
+			\text{Input: "hello world"} \quad \text{Hash: 2ef7bde608ce5404e97d5f042f95f89f1c232871.}
+			\]
+			In simulation workflows, hash strings encode parameters (e.g., functions, arrays, objects) to create unique file or directory names.
+			content...
+			\end{comment}
+			
+			\begin{comment}
+			
+			\subsubsection{The Concept of Hashing Input Data}
+			
+			The goal is to create a hash that uniquely represents simulation inputs:
+			\begin{itemize}
+				\item \textbf{Functions:} Use their source code as part of the hash (noting limitations for closures and dynamically defined functions).
+				\item \textbf{Arrays:} Use efficient hashing methods like \texttt{joblib.hash} to avoid lengthy string conversions.
+				\item \textbf{Objects:} Use string representations via \texttt{str()}, sufficient for smaller objects.
+			\end{itemize}
+			The resulting hash string can be used to:
+			\begin{itemize}
+				\item Name files or directories for storing simulation results.
+				\item Check whether a previously computed result exists.
+			\end{itemize}
+				content...
+			\end{comment}
+			
+			\subsubsection{Implementation Example}
+			
+			The following function generates a hash string from various input types:
+			
+			\begin{lstlisting}[language=Python]
+				import inspect  # For extracting source code of functions
+				import joblib  # Efficient hashing for arrays
+				import hashlib  # SHA1 hashing
+				
+				def generate_hash(func1, func2, array1, array2, obj1, obj2):
+					"""Generate a hash string based on input data."""
+					# Convert inputs into a tuple of strings/hashable data
+					data = (
+						inspect.getsource(func1),  # Source code of func1
+						inspect.getsource(func2),  # Source code of func2
+						joblib.hash(array1),       # Hash of array1
+						joblib.hash(array2),       # Hash of array2
+						str(obj1),                 # String representation of obj1
+						str(obj2)                  # String representation of obj2
+						)
+					# Generate an SHA1 hash from the combined data
+					hash_input = hashlib.sha1(str(data).encode('utf-8')).hexdigest()
+					return hash_input
+			\end{lstlisting}
+			
+			\paragraph{Step-by-Step Explanation}
+			\begin{enumerate}
+				\item \textbf{Input Data Processing:}
+				\begin{itemize}
+					\item \textbf{Functions:} Use \texttt{inspect.getsource(func)} to retrieve source code.
+					\item \textbf{Arrays:} Use \texttt{joblib.hash} for hashing.
+					\item \textbf{Objects:} Use \texttt{str()} to convert objects into string representations.
+				\end{itemize}
+				\item \textbf{Hash Creation:} Combine processed input data into a tuple, then hash the tuple using \texttt{hashlib.sha1}.
+			\end{enumerate}
+			
+			\subsubsection{Example Usage}
+			
+			Given the following inputs:
+			\begin{lstlisting}[language=Python]
+				x0 = 0.5
+				func1 = lambda x: x**2
+				func2 = lambda x: 0 if x <= x0 else 1
+				
+				import numpy as np
+				array1 = np.array([1, 2, 3])
+				array2 = np.array([4, 5, 6])
+				obj1 = {'key': 'value'}
+				obj2 = [7, 8, 9]
+			\end{lstlisting}
+			
+			Generate a hash:
+			\begin{lstlisting}[language=Python]
+				hash_string = generate_hash(func1, func2, array1, array2, obj1, obj2)
+				print("Generated Hash:", hash_string)
+			\end{lstlisting}
+			
+			Output:
+			\[
+			\text{Generated Hash: b6abd18caa7319e0a46797fd5dbaaf737e47fc64}
+			\]
+			
+			\begin{comment}
+			
+			\subsubsection{Why Use a Hash?}
+			\begin{itemize}
+				\item \textbf{Unique Identification:} Each set of inputs maps to a unique name.
+				\item \textbf{Efficient Organization:} Simplifies locating previously computed results.
+				\item \textbf{Compact Representation:} Encodes lengthy parameter descriptions into a fixed-length string.
+			\end{itemize}
+			
+			
+			\subsubsection{Cautions and Limitations}
+			\begin{itemize}
+				\item \textbf{Source Code for Functions:} Using \texttt{inspect.getsource} works only for functions defined in the same file. Closures or dynamically defined functions may produce inconsistent behavior.
+				\item \textbf{Object Conversion:} The \texttt{str()} function may not fully represent complex objects. Libraries like \texttt{pickle} or \texttt{joblib} can handle custom objects more effectively.
+			\end{itemize}
+				content...
+			\end{comment}
+			\begin{comment}
+			
+		\subsection{Comparison of Methods for Saving Large Arrays in Files}
+		
+			The following table compares two popular techniques for saving large arrays in files: \texttt{numpy.savez} and \texttt{joblib Storage}. Each method has unique strengths and weaknesses, making them suitable for different use cases.
+			
+			\begin{table}[h!]
+				\centering
+				\begin{tabular}{@{}p{3.5cm}p{5.5cm}p{5.5cm}@{}}
+					\toprule
+					%\rowcolor{gray!20} 
+					\textbf{Feature} & \textbf{\texttt{numpy.savez}} & \textbf{\texttt{joblib Storage}} \\ \midrule
+					\textbf{Purpose} & Save multiple arrays in a compressed \texttt{.npz} file. & Efficiently cache/retrieve large datasets or general Python objects. \\ 
+					\textbf{Data Types Supported} & Primarily NumPy arrays. & Any Python object (arrays, dictionaries, models, etc.). \\ 
+					\textbf{Efficiency} & Optimized for numerical arrays, with built-in compression. & Highly efficient for large datasets and complex objects. \\ 
+					\textbf{File Management} & Creates a single \texttt{.npz} file containing one or more arrays. & Stores objects in a directory-based caching system. \\ 
+					\textbf{Convenience} & Simple API with \texttt{savez} for saving and \texttt{load} for retrieving. & Seamless caching; saving and retrieving handled automatically. \\ 
+					\textbf{Compression} & Yes, \texttt{.npz} format uses compression by default. & Optional; depends on the storage backend (e.g., gzip). \\ 
+					\textbf{Scalability} & Suitable for storing large arrays; less flexible for other data types. & Highly scalable; supports large datasets, including complex workflows. \\ 
+					\textbf{Reusability} & Arrays must be explicitly loaded to reuse. & Automatically reuses data if cached (via memoization). \\ 
+					\textbf{Customizability} & Moderate; requires user-defined array names and metadata. & High; supports a wide range of Python objects and customizable caching. \\ 
+					\textbf{Persistence} & Persistent; files remain accessible after the program ends. & Persistent; cached files remain accessible across sessions. \\ 
+					\textbf{Learning Curve} & Easy to learn and implement. & Slightly steeper; requires understanding \texttt{joblib} and caching mechanisms. \\ 
+					\textbf{Limitations} & 
+					\begin{itemize}[leftmargin=*]
+						\item Limited to arrays and simple file storage.
+						\item Requires explicit names for arrays.
+					\end{itemize} 
+					& 
+					\begin{itemize}[leftmargin=*]
+						\item Requires proper directory management for large-scale caching.
+						\item Cache directories can become large if not managed.
+					\end{itemize} \\ 
+					\textbf{Best Use Case} & Saving multiple arrays compactly in a single file. & Efficiently caching intermediate results or datasets in iterative workflows. \\ 
+					\bottomrule
+				\end{tabular}
+				\caption{Comparison of \texttt{numpy.savez} and \texttt{joblib Storage} for managing large arrays.}
+				\label{tab:array_saving_methods}
+			\end{table}
+			\newpage
+				content...
+			\end{comment}
+			
+	\section{Programming with Classes}
+		Using object-oriented programming (OOP), we can design software around classes that combine data (attributes) and behavior (methods). Unlike function-based solvers, where you have to pass all input data as arguments, OOP allows us to combine related functionality into classes, making the code cleaner and easier to work with. The class structure/OOP approach used for developing the Wave Equation solver (full code can be found: \href{https://github.com/hplgit/fdm-book/blob/master/src/softeng2/wave1D_oo.py}{wave1D\_oo.py}), is summarized.
+		
+		\begin{comment}
+		
+		\subsection{Key Principles of Object-Oriented Programming}
+		\begin{enumerate}
+			\item \textbf{Encapsulation} \\
+			Encapsulation means grouping data (attributes) and functions (methods) into a class. It hides the details of how the class works and only shows what is needed to use it.
+			
+			\item \textbf{Inheritance} \\
+			Inheritance lets one class (child) use the data and methods of another class (parent). This saves time by reusing existing code.
+			
+			\item \textbf{Polymorphism} \\
+			Polymorphism allows different classes to have methods with the same name but different behaviors.
+		\end{enumerate}
+			content...
+		\end{comment}
+		
+		\subsection{Class implementation for solving of the wave equation}
+		
+		\subsubsection{Parameters Class}
+		The \texttt{Parameters} class serves as a structured framework for managing simulation parameters dynamic manner. Key features include:
+		
+		\begin{itemize}
+			\item \textbf{Parameter Validation:} Ensures all parameters, types, and descriptions are correctly defined.
+			\item \textbf{Dynamic Parameter Management:} Allows adding, updating, and retrieving parameters via method calls or dictionary-like syntax.
+			\item \textbf{Command-line Integration:} Supports parameter definitions via command-line arguments using Python's \texttt{argparse}.
+		\end{itemize}
+		
+		The class provides several methods to streamline parameter handling:
+		
+		\begin{itemize}
+			\item \texttt{\_\_init\_\_}: Initializes three dictionaries:
+			\begin{itemize}
+				\item \texttt{prm}: Stores parameter names and default values.
+				\item \texttt{type}: Specifies the data type of each parameter.
+				\item \texttt{help}: Stores descriptive text for each parameter.
+			\end{itemize}
+			These dictionaries must be defined in subclasses of \texttt{Parameters}.
+			
+			\item \texttt{ok}: Validates that the \texttt{prm}, \texttt{type}, and \texttt{help} dictionaries exist and are properly structured, raising an error if they are incomplete or misconfigured.
+			
+			\item \texttt{set(**parameters)}: Updates the values of one or more parameters, validating their names before setting values.
+			
+			\item \texttt{get(name)}: Retrieves the value of a single parameter or a list of parameters, validating their existence.
+			
+			\item \texttt{\_\_getitem\_\_} and \texttt{\_\_setitem\_\_}: Enable dictionary-style access to parameters:
+			\begin{itemize}
+				\item \texttt{obj[name]} fetches a parameter value (equivalent to \texttt{get(name)}).
+				\item \texttt{obj[name] = value} updates a parameter value (equivalent to \texttt{set(name=value)}).
+			\end{itemize}
+			
+			\item \texttt{define\_command\_line\_options(parser=None)}: Extends an \texttt{argparse.ArgumentParser} object with options based on the defined parameters. It enforces data types using \texttt{self.type} and descriptive text using \texttt{self.help}.
+			
+			\item \texttt{init\_from\_command\_line(args)}: Initializes parameters from parsed command-line arguments, updating \texttt{prm} values based on \texttt{args}.
+		\end{itemize}
+		
+		\begin{comment}
+			
+		In the context of solving the wave equation, the \texttt{Parameters} class underpins the simulation's configuration, managing key inputs such as:
+		\begin{itemize}
+			\item Time step (\texttt{dt}),
+			\item Grid size (\texttt{dx}),
+			\item Wave speed (\texttt{c}),
+			\item Boundary conditions.
+		\end{itemize}
+		This ensures consistency and correctness in the solver's input parameters, forming a reliable foundation for the numerical solution process.
+		content...
+		\end{comment}
+		
+		\subsubsection{Problem Class}
+			This section introduces the \texttt{Problem} class, which specializes the \texttt{Parameters} class to define and solve a one-dimensional wave equation. The class defines problem-specific parameters. Below is a detailed overview:
+			
+			\begin{comment}
+			
+			\paragraph{Purpose} 
+			The \texttt{Problem} class provides a mathematical framework for the wave equation:
+			\[
+			u_{tt} = (c^2 u_x)_x + f(x, t), \quad t \in [0, T], \, x \in (0, L).
+			\]
+			It employs the method of manufactured solutions to define an exact solution, aiding the validation of numerical solvers.
+			
+			\paragraph{Manufactured Solution} 
+			The exact solution is defined as:
+			\[
+			u(x, t) = x(L - x)(1 + t^2),
+			\]
+			ensuring simple boundary and initial conditions while enabling analytical computation.
+				content...
+			\end{comment}
+			\paragraph{Attributes}
+			The class is initialized as following:
+			\begin{lstlisting}[language=Python]
+				def __init__(self):
+					self.prm = dict(L=2.5, c=1.5, T=18)
+					self.type = dict(L=float, c=float, T=float)
+					self.help = dict(
+					L='1D domain', 
+					c='coefficient (wave velocity) in PDE', 
+					T='end time of simulation'
+					)
+			\end{lstlisting}
+			
+			\begin{itemize}
+				\item \texttt{prm}: Stores parameters such as:
+				\begin{itemize}
+					\item \texttt{L}: Domain length.
+					\item \texttt{c}: Wave velocity.
+					\item \texttt{T}: Simulation end time.
+				\end{itemize}
+				\item \texttt{type}: Specifies parameter types (floats for \texttt{L}, \texttt{c}, and \texttt{T}).
+				\item \texttt{help}: Provides descriptions for parameters
+			\end{itemize}
+			
+			\paragraph{Methods}
+			\begin{itemize}
+				\item \texttt{u\_exact(self, x, t)}: Computes the exact solution:
+				\[
+				u(x, t) = x(L - x)(1 + t^2).
+				\]
+				\item \texttt{I(self, x)}: Computes the initial condition:
+				\[
+				I(x) = u(x, 0) = x(L - x).
+				\]
+				\item \texttt{V(self, x)}: Computes the initial velocity:
+				\[
+				V(x) = 0.5 \cdot u(x, 0) = 0.5 \cdot x(L - x).
+				\]
+				\item \texttt{f(self, x, t)}: Computes the source term:
+				\[
+				f(x, t) = 2(1 + 0.5t)c^2.
+				\]
+				\item \texttt{U\_0(self, t)}: Defines the boundary condition at \(x = 0\):
+				\[
+				U_0(t) = u(0, t) = 0.
+				\]
+				\item \texttt{U\_L(self, t)}: Represents the boundary condition at \(x = L\), which is set to \texttt{None} by default.
+			\end{itemize}
+			
+			\begin{comment}
+			
+			\paragraph{Integration with the Wave Equation Solver}
+			The \texttt{Problem} class is essential for the wave equation solver, providing the following:
+			\begin{itemize}
+				\item \textbf{Parameter Management:} Inherits from \texttt{Parameters} to manage and validate inputs like \texttt{L}, \texttt{c}, and \texttt{T}.
+				\item \textbf{Exact Solution:} Supplies an analytical solution (\texttt{u\_exact}) for testing and validation.
+				\item \textbf{Boundary and Initial Conditions:} Defines displacement (\texttt{I}), velocity (\texttt{V}), and boundary conditions (\texttt{U\_0}, \texttt{U\_L}).
+			\end{itemize}
+			
+			The \texttt{Problem} class streamlines the process of initializing, solving, and validating the wave equation, ensuring consistency and reliability in numerical simulations.
+			content...
+			\end{comment}
+		\subsubsection{Mesh Class}
+		
+			This section outlines the \texttt{Mesh} class, which provides a structured framework for constructing spatial and temporal grids in numerical simulations. Below is a detailed description of its purpose, attributes, and methods.
+			
+			\paragraph{Purpose}
+			The \texttt{Mesh} class is designed to:
+			\begin{itemize}
+				\item Generate spatial and temporal grids for numerical simulations.
+				%\item Support 1D, 2D, and potentially higher-dimensional domains.
+				\item Allow flexibility by enabling users to specify either the number of divisions (\texttt{N}) or the resolution (\texttt{d}) for grids.
+			\end{itemize}
+			\begin{comment}
+			
+			\paragraph{Attributes}
+			\begin{itemize}
+				\item \textbf{Spatial Mesh:}
+				\begin{itemize}
+					\item \texttt{L}: Domain bounds for each spatial dimension (e.g., \texttt{[0, Lx]} for 1D).
+					\item \texttt{N}: Number of grid points per dimension.
+					\item \texttt{d}: Grid spacing per dimension.
+					\item \texttt{x}: Discretized spatial coordinates.
+				\end{itemize}
+				\item \textbf{Temporal Mesh:}
+				\begin{itemize}
+					\item \texttt{T}: End time of the simulation.
+					\item \texttt{t0}: Initial time (default is 0).
+					\item \texttt{Nt}: Number of time steps.
+					\item \texttt{dt}: Time step size.
+					\item \texttt{t}: Discretized time coordinates.
+				\end{itemize}
+			\end{itemize}
+				content...
+			\end{comment}
+			\paragraph{Constructor: \texttt{\_\_init\_\_}}
+			The constructor initializes the spatial and temporal grids based on the input parameters:
+			\begin{itemize}
+				\item \textbf{Spatial Grid:} Users can specify either \texttt{N} (number of divisions) or \texttt{d} (grid spacing), while \texttt{L} (domain bounds) is always required.
+				\item \textbf{Temporal Grid:} Users can specify either \texttt{Nt} (number of time steps) or \texttt{dt} (time step size), while \texttt{T} (total simulation time) is always required.
+			\end{itemize}
+			
+			\begin{comment}
+			
+			\paragraph{Key Steps in Initialization}
+			\begin{enumerate}
+				\item \textbf{Input Validation:}
+				\begin{itemize}
+					\item Ensures that sufficient input is provided to construct the mesh (e.g., either \texttt{Nt} or \texttt{dt} for the time grid).
+					\item Verifies that the sizes of \texttt{L}, \texttt{N}, and \texttt{d} are consistent across spatial dimensions.
+				\end{itemize}
+				\item \textbf{1D Interface Simplification:}
+				\begin{itemize}
+					\item Allows users to provide \texttt{L}, \texttt{N}, or \texttt{d} as single values for 1D problems instead of lists.
+				\end{itemize}
+				\item \textbf{Derive Missing Values:}
+				\begin{itemize}
+					\item Computes \texttt{N} from \texttt{d} and \texttt{L}, or vice versa if one is missing.
+					\item Computes \texttt{Nt} from \texttt{dt} and \texttt{T}, or vice versa.
+				\end{itemize}
+				\item \textbf{Construct Mesh:}
+				\begin{itemize}
+					\item Uses \texttt{numpy.linspace} to generate spatial (\texttt{x}) and temporal (\texttt{t}) grids based on computed parameters.
+				\end{itemize}
+			\end{enumerate}
+				content...
+			\end{comment}
+			
+			\paragraph{Key Methods}
+			\begin{itemize}
+				\item \texttt{get\_num\_space\_dim(self)}:
+				\begin{itemize}
+					\item Returns the number of spatial dimensions.
+					\item If the spatial mesh is undefined (\texttt{self.d} is \texttt{None}), returns 0.
+				\end{itemize}
+				\item \texttt{has\_space(self)}:
+				\begin{itemize}
+					\item Returns \texttt{True} if a spatial mesh is defined, \texttt{False} otherwise.
+				\end{itemize}
+				\item \texttt{has\_time(self)}:
+				\begin{itemize}
+					\item Returns \texttt{True} if a temporal mesh is defined, \texttt{False} otherwise.
+				\end{itemize}
+				\item \texttt{dump(self)}:
+				\begin{itemize}
+					\item Generates a summary string describing the mesh configuration for both space and time.
+					\item Includes details about domain bounds, grid spacing, number of divisions, time interval, and time steps.
+				\end{itemize}
+			\end{itemize}
+			
+		\subsubsection{Function Class }
+		
+			This section introduces the \texttt{Function} class, designed to store and manage function values over a discretized domain.
+			%leveraging the \texttt{Mesh} class. It is particularly useful in numerical simulations where functions must be represented as arrays over a mesh.
+			
+			\paragraph{Purpose}
+			The \texttt{Function} class:
+			\begin{itemize}
+				%\item Represents a function's values over a spatial, temporal, or spatiotemporal domain.
+				\item Stores these values in an appropriately shaped array (\texttt{u}) based on the \texttt{Mesh} configuration.
+				\item Supports single-component (scalar) or multi-component (vector) functions.
+			\end{itemize}
+			
+			\paragraph{Constructor: \texttt{\_\_init\_\_}}
+			\textbf{Inputs:}
+			\begin{itemize}
+				\item \texttt{mesh}: An instance of the \texttt{Mesh} class defining the spatial and temporal discretization.
+				\item \texttt{num\_comp}: Number of components in the function:
+				\begin{itemize}
+					\item 1: For scalar functions.
+					\item Greater than 1: For vector or multi-component functions.
+				\end{itemize}
+				\item \texttt{space\_only}: Determines if the function is defined only on the spatial mesh (\texttt{True}) or on both spatial and temporal meshes (\texttt{False}).
+			\end{itemize}
+			
+			\begin{comment}
+			
+			\textbf{Initialization Steps:}
+			\begin{enumerate}
+				\item \textbf{Assign Input Attributes:}
+				\begin{itemize}
+					\item \texttt{self.mesh}: Stores the provided \texttt{Mesh} instance.
+					\item \texttt{self.num\_comp}: Number of components in the function.
+					\item \texttt{self.indices}: Tracks the dimension labels for easier interpretation (e.g., \texttt{['x0', 'x1', 'time']}).
+				\end{itemize}
+				\item \textbf{Determine Mesh Type:} The constructor evaluates the \texttt{Mesh} configuration (\texttt{space\_only}, \texttt{has\_space}, \texttt{has\_time}) to initialize the storage array \texttt{u}.
+				\item \textbf{Initialize Storage Array (\texttt{u}):} Based on the \texttt{Mesh} and function configuration:
+				\begin{itemize}
+					\item \textbf{Spatial Mesh Only:}
+					\begin{itemize}
+						\item For scalar functions (\texttt{num\_comp=1}), \texttt{u} is a multi-dimensional array with shape \texttt{[N[i]+1]} for each spatial dimension.
+						\item For multi-component functions, \texttt{u} includes an additional dimension of size \texttt{num\_comp}.
+					\end{itemize}
+					\item \textbf{Temporal Mesh Only:}
+					\begin{itemize}
+						\item For scalar functions, \texttt{u} is a 1D array of size \texttt{Nt+1}.
+						\item For multi-component functions, \texttt{u} is a 2D array of shape \texttt{[Nt+1, num\_comp]}.
+					\end{itemize}
+					\item \textbf{Spatiotemporal Mesh:}
+					\begin{itemize}
+						\item \texttt{u} is shaped to include both time and space dimensions.
+						\item For multi-component functions, an additional dimension of size \texttt{num\_comp} is added.
+					\end{itemize}
+				\end{itemize}
+				\item \textbf{Set Indices:}
+				\begin{itemize}
+					\item \texttt{self.indices} provides a human-readable representation of the array dimensions:
+					\begin{itemize}
+						\item For a 2D spatial mesh: \texttt{['x0', 'x1']}.
+						\item For a spatiotemporal mesh: \texttt{['time', 'x0', 'x1']}.
+						\item For multi-component functions, \texttt{['component']} is appended.
+					\end{itemize}
+				\end{itemize}
+			\end{enumerate}
+				content...
+			\end{comment}
+			\paragraph{Key Code Blocks}
+			\textbf{Space-Only Mesh:}
+			\begin{lstlisting}[language=Python]
+				if (self.mesh.has_space() and not self.mesh.has_time()) or \
+					(self.mesh.has_space() and self.mesh.has_time() and \
+					space_only):
+					if num_comp == 1:
+						self.u = np.zeros(
+						[self.mesh.N[i] + 1 for i in range(len(self.mesh.N))])
+						self.indices = ['x'+str(i) for i in range(len(self.mesh.N))]
+					else:
+						self.u = np.zeros(
+						[self.mesh.N[i] + 1 for i in range(len(self.mesh.N))] +
+						[num_comp])
+						self.indices = ['x'+str(i) for i in range(len(self.mesh.N))] +\
+					['component']
+			\end{lstlisting}
+			
+			\textbf{Time-Only Mesh:}
+			\begin{lstlisting}[language=Python]
+				if not self.mesh.has_space() and self.mesh.has_time():
+					if num_comp == 1:
+						self.u = np.zeros(self.mesh.Nt+1)
+						self.indices = ['time']
+					else:
+						self.u = np.zeros((self.mesh.Nt+1, num_comp))
+						self.indices = ['time', 'component']
+			\end{lstlisting}
+			
+			\textbf{Spatiotemporal Mesh:}
+			\begin{lstlisting}[language=Python]
+				if self.mesh.has_space() and self.mesh.has_time() \
+				and not space_only:
+					size = [self.mesh.Nt+1] + \
+					[self.mesh.N[i]+1 for i in range(len(self.mesh.N))]
+					if num_comp > 1:
+						self.indices = ['time'] + \
+						['x'+str(i) for i in range(len(self.mesh.N))] +\
+						['component']
+						size += [num_comp]
+					else:
+						self.indices = ['time'] + ['x'+str(i)
+						for i in range(len(self.mesh.N))]
+					self.u = np.zeros(size)
+			\end{lstlisting}
+			
+				
+		\subsubsection{Solver Class}
+			
+			The \texttt{Solver} class is a implementation for numerically solving the wave equation:
+			\[
+			u_{tt} = (c^2 u_x)_x + f(x, t), \quad t \in [0, T], \, x \in [0, L].
+			\]
+			Below is a detailed breakdown of its functionality.
+			
+			\paragraph{Purpose}
+			The \texttt{Solver} class:
+			\begin{itemize}
+				\item Numerically solves the wave equation using finite differences in time and space.
+				\item Exploits symmetry to reduce the computational domain to \( x \in [0, L/2] \), improving efficiency.
+			%	\item Uses the Courant number (\( C \)) to maintain stability.
+			\end{itemize}
+			
+			\paragraph{Initialization}
+			\textbf{Constructor: \texttt{\_\_init\_\_}}
+			\begin{itemize}
+				\item \textbf{Inputs:}
+				\begin{itemize}
+					\item \texttt{problem}: An instance of the \texttt{Problem} class defining the wave equation parameters and exact solution.
+				\end{itemize}
+				\item \textbf{Key Attributes:}
+				\begin{itemize}
+					\item \texttt{C}: Courant number, influencing stability and accuracy.
+					\item \texttt{Nx}: Number of spatial mesh points.
+					\item \texttt{stability\_safety\_factor}: Safety factor for stability constraints.
+				\end{itemize}
+				\item \textbf{Mesh and Function Setup:}
+				\begin{itemize}
+					\item Defines a spatial and temporal mesh using the \texttt{Mesh} class.
+					\item Reduces the computational domain to \( [0, L/2] \) using symmetry.
+					\item Computes the time step (\( \Delta t \)) based on the Courant condition:
+					\[
+					\Delta t = \frac{\Delta x \cdot \text{stability\_safety\_factor} \cdot C}{c}.
+					\]
+					\item Initializes a \texttt{Function} object (\texttt{self.f}) to store the solution over the mesh.
+				\end{itemize}
+			\end{itemize}
+			
+			\paragraph{Solver Method: \texttt{solve()}}
+			\begin{itemize}
+				\item \textbf{Inputs:}
+				\begin{itemize}
+					\item \texttt{user\_action}: Optional callback function for custom actions during the simulation.
+					\item \texttt{version}: Determines whether scalar (\texttt{'scalar'}) or vectorized (\texttt{'vectorized'}) computations are used.
+				\end{itemize}
+				\item \textbf{Steps:}
+				\begin{enumerate}
+					\item \textbf{Initialization:}
+					\begin{itemize}
+						\item Extracts parameters such as \( L \), \( c \), \( T \), and \( f(x, t) \) from the \texttt{Problem} instance.
+						\item Sets up spatial and temporal grids:
+						\begin{itemize}
+							\item Spatial grid: \( x \in [0, L/2] \).
+							\item Temporal grid: \( t \in [0, T] \).
+						\end{itemize}
+						\item Handles \( c(x) \) as a constant, callable function, or array.
+					\end{itemize}
+					\item \textbf{Handle Initial and Boundary Conditions:}
+					\begin{itemize}
+						\item Wraps user-defined functions (\texttt{f}, \texttt{I}, \texttt{V}, \texttt{U\_0}, \texttt{U\_L}) to provide default behaviors.
+						\item Loads initial conditions \( u(x, 0) = I(x) \) into the first time step.
+					\end{itemize}
+					\item \textbf{Time-Stepping Loop:}
+					\begin{itemize}
+						\item \textbf{First Time Step:}
+						\begin{itemize}
+							\item Computes \( u(x, t_1) \) using a formula incorporating the initial velocity \( V(x) \).
+							\item Applies boundary conditions at \( x=0 \) and \( x=L/2 \).
+						\end{itemize}
+						\item \textbf{Subsequent Time Steps:}
+						\begin{itemize}
+							\item Updates the solution using the finite-difference scheme:
+							\[
+							u_i^{n+1} = -u_i^{n-1} + 2u_i^n + C^2 \left( \frac{2q_{i+1} + q_i}{2} (u_{i+1}^n - u_i^n) - \frac{2q_{i-1} + q_i}{2} (u_i^n - u_{i-1}^n) \right) + \Delta t^2 f(x_i, t_n).
+							\]
+							\item Applies boundary conditions at each time step.
+						\end{itemize}
+					\end{itemize}
+					\item \textbf{User-Defined Actions:}
+					\begin{itemize}
+						\item Calls \texttt{user\_action(u, x, t, n)} at each time step, if provided.
+						\item Allows users to visualize, analyze, or manipulate the solution during the simulation.
+					\end{itemize}
+					\item \textbf{Efficiency Features:}
+					\begin{itemize}
+						\item Supports scalar and vectorized computations for better performance.
+						\item Uses a hashed input file (\texttt{.npz}) to check if a simulation with identical parameters has already been run.
+					\end{itemize}
+				\end{enumerate}
+			\end{itemize}
+		
+		\subsubsection{Function: \texttt{test\_quadratic\_with\_classes()}}
+		%	The function \texttt{test\_quadratic\_with\_classes()} is a unit test designed to validate the accuracy and functionality of the wave equation solver implemented in the \texttt{Solver} class. Below is an explanation of its key components:
+			
+			\textbf{Function Overview}
+			\begin{comment}
+			
+			\begin{itemize}
+				\item \textbf{Purpose:}
+				\begin{itemize}
+					\item \textit{Verify Solver Accuracy:} Ensures that the \texttt{Solver} reproduces the exact solution \( u(x, t) = x(L-x)(1 + t/2) \), a quadratic function derived using the method of manufactured solutions.
+					\item \textit{Check Scalar and Vectorized Versions:} Tests both computational modes (\texttt{scalar} and \texttt{vectorized}).
+					\item \textit{Validate Numerical Parameters:} Reads and initializes numerical parameters from the command line, ensuring consistency with user inputs.
+					\item \textit{Error Checking:} Uses \texttt{solver.assert\_no\_error()} to confirm numerical accuracy within a tight tolerance.
+				\end{itemize}
+			\end{itemize}
+				content...
+			\end{comment}
+			
+		%	\textbf{Key Steps}
+			\begin{enumerate}
+				\item \textbf{Define Problem and Solver Instances}
+				\begin{lstlisting}[language=Python]
+					problem = Problem()
+					solver = Solver(problem)
+				\end{lstlisting}
+				
+				\begin{itemize}
+					\item The \texttt{Problem} class defines the wave equation parameters and exact solution.
+					\item The \texttt{Solver} class handles numerical computations over the reduced domain \([0, L/2]\).
+				\end{itemize}
+				
+				\item \textbf{Define Command-Line Options}
+				\begin{lstlisting}[language=Python]
+					parser = problem.define_command_line_options()
+					parser = solver.define_command_line_options(parser)
+					args = parser.parse_args()
+				\end{lstlisting}
+				
+				\begin{itemize}
+					\item Combines options from \texttt{Problem} and \texttt{Solver}.
+					\item Allows users to specify parameters such as domain length (\texttt{L}) and time duration (\texttt{T}).
+				\end{itemize}
+				
+				\item \textbf{Initialize Problem and Solver}
+				\begin{lstlisting}[language=Python]
+					problem.init_from_command_line(args)
+					solver.init_from_command_line(args)
+				\end{lstlisting}
+				 Updates \texttt{Problem} and \texttt{Solver} attributes based on user inputs.
+				
+				\item \textbf{Print Parameters for Verification}
+				\begin{lstlisting}[language=Python]
+					print(parser.parse_args())
+				\end{lstlisting}
+				 Confirms that simulation parameters are correctly initialized.
+				
+				\item \textbf{Solve the Wave Equation}
+				\begin{lstlisting}[language=Python]
+					solver.solve()
+				\end{lstlisting}
+				
+				\begin{itemize}
+					\item Sets up the mesh, initial conditions, and time-stepping scheme.
+					\item Computes the numerical solution stored in \texttt{solver.f.u}.
+				\end{itemize}
+				
+				\item \textbf{Validate Numerical Solution}
+				\begin{lstlisting}[language=Python]
+					print('Check error.........................')
+					solver.assert_no_error()
+				\end{lstlisting}
+				
+				\begin{itemize}
+					\item Compares the numerical solution with the exact quadratic solution.
+					\item Ensures the error is below a tolerance (e.g., \(10^{-13}\)).
+				\end{itemize}
+				
+				\item \textbf{Run the Test}
+				\begin{lstlisting}[language=Python]
+				if __name__ == '__main__':
+					test_quadratic_with_classes()
+				\end{lstlisting}
+				\textbf{Purpose:} Executes the \texttt{test\_quadratic\_with\_classes()} function when the script is run directly.
+			\end{enumerate}
+		
+		
+	
+	
+	\newpage
+	\section*{Acknowledgments}
+	
+	I acknowledge the use of ChatGPT for writing assistance and code debugging in the preparation of this document.
+
+
+
+
+
+
+
+
+\end{document}
