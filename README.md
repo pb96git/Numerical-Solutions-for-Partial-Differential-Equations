@@ -1,13 +1,14 @@
 # Numerical-Solutions-for-Partial-Differential-Equations
 
-This repository contains codes and documentation developed as part of the PhD course Numerical Solutions for Partial Differential Equations at the University of South-Eastern Norway(USN). 
+This repository contains codes and documentation developed as part of the PhD course Numerical Solutions for Partial Differential Equations at the University of South-Eastern Norway(USN).
 As a course material books used are: Finite Difference Computing with PDEs: A Modern Software Approach by Hans Petter Langtangen and Svein Linge and 
 Riemann solvers and numerical methods for fluid dynamics: a practical introduction by Toro, E. F.
 
+
     The code is currently in development and serves as a learning tool for:
-    Part 1:  Solving ODEs of 1-degree-of-freedom (1DOF) vibration systems.
-    Part 2:  Solving 1D wave PDEs with option of variable velocity.
-    Part 3:  Solving 1D and 2D diffusion PDEs.
+    Part 1:  Solving ODEs of 1-degree-of-freedom (1DOF) vibration systems. (September 2024)
+    Part 2:  Solving 1D wave PDEs with option of variable velocity. (October 2024)
+    Part 3:  Solving 1D and 2D diffusion PDEs. (November 2024)
      
     How to Use:
     
