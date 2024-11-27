@@ -4,14 +4,10 @@ This repository contains codes and documentation developed as part of the PhD co
 As a course material books used are: Finite Difference Computing with PDEs: A Modern Software Approach by Hans Petter Langtangen and Svein Linge and 
 Riemann solvers and numerical methods for fluid dynamics: a practical introduction by Toro, E. F.
 
-
-    
-
-
     The code is currently in development and serves as a learning tool for:
-    Part 1:  Solving 1-degree-of-freedom (1DOF) vibration systems.
-    Part 2:  Solving 1D wave PDE with option of variable velocity.
-    Part 3:  Solving 1D and 2D diffusion PDE.
+    Part 1:  Solving ODEs of 1-degree-of-freedom (1DOF) vibration systems.
+    Part 2:  Solving 1D wave PDEs with option of variable velocity.
+    Part 3:  Solving 1D and 2D diffusion PDEs.
      
     How to Use:
     
