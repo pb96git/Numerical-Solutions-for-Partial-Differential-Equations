@@ -6,9 +6,10 @@ Riemann solvers and numerical methods for fluid dynamics: a practical introducti
 
 
     The code is currently in development and serves as a learning tool for:
-    Part 1:  Solving ODEs of 1-degree-of-freedom (1DOF) vibration systems. (September 2024)
-    Part 2:  Solving 1D wave PDEs with option of variable velocity. (October 2024)
-    Part 3:  Solving 1D and 2D diffusion PDEs. (November 2024)
+    Part 1:  Solving ODEs of 1-degree-of-freedom (1DOF) vibration systems. Ch. 1 - Langtangen, Linge (September 2024)
+    Part 2:  Solving 1D wave PDEs with option of variable velocity.  Ch. 2 - Langtangen, Linge (October 2024)
+    Part 3:  Solving 1D and 2D diffusion PDEs.  Ch. 3 - Langtangen, Linge (November 2024)
+    Part 4: Software Engineering - Wave Equation Model.  Appendix C - Langtangen, Linge  (November 2024)
      
     How to Use:
     
