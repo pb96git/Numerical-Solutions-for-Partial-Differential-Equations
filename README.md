@@ -4,23 +4,25 @@ This repository contains codes and documentation developed as part of the PhD co
 As a course material books used are: Finite Difference Computing with PDEs: A Modern Software Approach by Hans Petter Langtangen and Svein Linge and 
 Riemann solvers and numerical methods for fluid dynamics: a practical introduction by Toro, E. F.
 
-I acknowledge the use of ChatGPT for writing assistance and code debugging in the preparation of this repository.
+
     
 
 
     The code is currently in development and serves as a learning tool for:
     Part 1:  Solving 1-degree-of-freedom (1DOF) vibration systems.
     Part 2:  Solving 1D wave PDE with option of variable velocity.
-    
+    Part 3:  Solving 1D and 2D diffusion PDE.
+     
     How to Use:
     
     Copy and Paste a Problem Example:
     Select one of the example codes (file starting with Ex) and use it as a template to define your system.
     
     Set Custom Functions:
-    Modify the template by defining functions specific to your 1DOF vibration system. 
-    Ensure that you implement the appropriate damping, restoring force, and external force functions.
+    Modify the template by defining functions specific to your physical system. 
+    Ensure that you implement the appropriate parameters (damping, restoring force, and external force function, initial displacementes,..).
     
     This code is primarily intended for educational purposes and to assist in learning numerical methods 
-    for solving ODE in mechanical vibration systems, wave PDE and their programming in Python.
+    for solving ODE in mechanical vibration systems, wave PDEs and diffusion PDEs and their programming in Python.
 
+I acknowledge the use of ChatGPT for writing assistance and code debugging in the preparation of this repository.
