@@ -16,6 +16,6 @@ Riemann solvers and numerical methods for fluid dynamics: a practical introducti
     This repository is primarily intended for educational purposes and to assist in learning numerical methods 
     for solving ODE in mechanical vibration systems, wave PDEs and diffusion PDEs, Riemann solvers for 1D Euler Equation and their programming in Python.
 
-    I acknowledge the use of ChatGPT for writing assistance and code debugging in the preparation of this repository.
+    Autor acknowledge the use of ChatGPT for writing assistance and code debugging in the preparation of this repository.
 
 
