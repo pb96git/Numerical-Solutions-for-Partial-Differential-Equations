@@ -12,10 +12,10 @@ Riemann solvers and numerical methods for fluid dynamics: a practical introducti
     Part 4:  Software Engineering - Wave Equation Model.  Appendix C - Langtangen, Linge  (November 2024)
     Part 5:  Riemann Solvers: solving the Riemann problem for the 1D Euler equations for an ideal gas. - Ch. 4, 5, 6 Toro, E. F. 
      
-  
-    
+
     This repository is primarily intended for educational purposes and to assist in learning numerical methods 
     for solving ODE in mechanical vibration systems, wave PDEs and diffusion PDEs, Riemann solvers for 1D Euler Equation and their programming in Python.
-    
 
-I acknowledge the use of ChatGPT for writing assistance and code debugging in the preparation of this repository.
+    I acknowledge the use of ChatGPT for writing assistance and code debugging in the preparation of this repository.
+
+
