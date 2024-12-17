@@ -10,7 +10,7 @@ Riemann solvers and numerical methods for fluid dynamics: a practical introducti
     Part 2:  Solving 1D wave PDEs with option of variable velocity.  Ch. 2 - Langtangen, Linge (October 2024)
     Part 3:  Solving 1D and 2D diffusion PDEs.  Ch. 3 - Langtangen, Linge (November 2024)
     Part 4:  Software Engineering - Wave Equation Model.  Appendix C - Langtangen, Linge  (November 2024)
-    Part 5:  Riemann Solvers: solving the Riemann problem for the 1D Euler equations for an ideal gas. - Ch. 4, 5, 6 Toro, E. F. 
+    Part 5:  Riemann Solvers: solving the Riemann problem for the 1D Euler equations for an ideal gas. - Ch. 4, 5, 6 Toro, E. F. (December 2024)
      
 
     This repository is primarily intended for educational purposes and to assist in learning numerical methods 
